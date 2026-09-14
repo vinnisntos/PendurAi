@@ -11,7 +11,7 @@
 
 Sistema completo de **Frente de Caixa (PDV)** e **Retaguarda (ERP)**, multi-tenant, para automatizar a operação de adegas e mercados de pequeno/médio porte — da venda rápida no balcão ao controle detalhado de estoque, fiado, turno de caixa e comandas.
 
-> O repositório se chama `EmporioGege` por motivo histórico (nome da loja piloto usada no desenvolvimento). O produto comercial é o **PendurAi**, desenhado desde o início para ser vendido a múltiplas lojas, e já está no ar em **[pendurai.vinnisantos.com.br](https://pendurai.vinnisantos.com.br)**.
+> O repositório se chamava `EmporioGege` por motivo histórico (nome da loja piloto usada no desenvolvimento). O produto comercial é o **PendurAi**, desenhado desde o início para ser vendido a múltiplas lojas, e já está no ar em **[pendurai.vinnisantos.com.br](https://pendurai.vinnisantos.com.br)**.
 
 ---
 
