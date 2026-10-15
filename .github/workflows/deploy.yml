@@ -1,0 +1,42 @@
+name: Deploy
+
+# A cada push na main: publica o app para linux-arm64 e envia para a VPS da Oracle.
+# A chave de DEPLOY_SSH_KEY só executa /usr/local/bin/deploy-pendurai na VPS (restrict + command=),
+# que guarda backup, troca os arquivos, reinicia o serviço e volta o backup se o app não subir.
+# Os segredos ficam só em /etc/pendurai.env na VPS.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Publish linux-arm64
+        run: dotnet publish EmporioGege/EmporioGege.csproj -c Release -r linux-arm64 --self-contained false -o out
+
+      - name: Envia para a VPS e sobe
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          tar -czf - -C out . | ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes ubuntu@146.235.38.173
+
+      - name: Verificar site
+        run: curl -fsS -o /dev/null --retry 5 --retry-delay 3 https://pendurai.vinnisantos.com.br/
