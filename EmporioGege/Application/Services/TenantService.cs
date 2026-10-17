@@ -11,7 +11,8 @@ namespace EmporioGege.Application.Services
                    cpf_rg_dono AS CpfRgDono, cnpj AS Cnpj, cidade_estado AS CidadeEstado,
                    telefone_empresa AS TelefoneEmpresa, telefone_dono AS TelefoneDono,
                    email_empresa AS EmailEmpresa, email_dono AS EmailDono,
-                   status_licenca AS StatusLicenca, data_expiracao AS DataExpiracao, created_at AS CreatedAt
+                   status_licenca AS StatusLicenca, data_expiracao AS DataExpiracao, created_at AS CreatedAt,
+                   asaas_subscription_id AS AsaasSubscriptionId
             FROM tenants
             """;
 

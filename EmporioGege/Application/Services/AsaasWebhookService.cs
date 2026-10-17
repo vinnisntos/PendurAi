@@ -52,7 +52,7 @@ namespace EmporioGege.Application.Services
             var novoStatus = evento switch
             {
                 "PAYMENT_CONFIRMED" or "PAYMENT_RECEIVED" => "ativo",
-                "PAYMENT_OVERDUE" => "suspenso",
+                "PAYMENT_OVERDUE" or "PAYMENT_REFUNDED" or "PAYMENT_CHARGEBACK_REQUESTED" => "suspenso",
                 "SUBSCRIPTION_DELETED" or "SUBSCRIPTION_INACTIVATED" => "cancelado",
                 _ => null
             };
@@ -68,7 +68,7 @@ namespace EmporioGege.Application.Services
             // isso, toda cobrança MENSAL recorrente (que também dispara PAYMENT_CONFIRMED)
             // reenviaria o mesmo e-mail de "acesso liberado" todo mês.
             var tenant = await connection.QuerySingleOrDefaultAsync<TenantParaWebhookRow>(new CommandDefinition(
-                "SELECT id AS Id, status_licenca AS StatusLicencaAnterior FROM tenants WHERE asaas_subscription_id = @SubscriptionId",
+                "SELECT id AS Id, status_licenca AS StatusLicencaAnterior, data_expiracao AS DataExpiracao FROM tenants WHERE asaas_subscription_id = @SubscriptionId",
                 new { SubscriptionId = subscriptionId }, cancellationToken: ct));
 
             if (tenant is null)
@@ -77,17 +77,26 @@ namespace EmporioGege.Application.Services
                 return;
             }
 
-            // Grace period de 5 dias além do vencimento da cobrança confirmada - tolera
-            // pequenas diferenças de fuso/relógio entre o Asaas e a nossa checagem; quem
-            // realmente controla o acesso é status_licenca (checado no login), isso aqui é
-            // só o campo informativo (data_expiracao) usado como segunda camada.
+            // A cobrança paga cobre o mês seguinte ao vencimento (assinatura MONTHLY), mais 5 dias de
+            // folga. Campo informativo: quem controla o acesso de loja com assinatura é status_licenca.
             DateTime? novaDataExpiracao = novoStatus == "ativo" && vencimentoPagamento is not null
-                ? vencimentoPagamento.Value.AddDays(5).ToDateTime(TimeOnly.MinValue)
+                ? CoberturaAte(vencimentoPagamento.Value)
                 : null;
+
+            // Atraso de uma fatura que já foi coberta por um pagamento posterior (eventos chegam fora
+            // de ordem): não suspende quem está em dia.
+            if (evento == "PAYMENT_OVERDUE" && vencimentoPagamento is not null && CoberturaAte(vencimentoPagamento.Value) < tenant.DataExpiracao)
+            {
+                logger.LogInformation("PAYMENT_OVERDUE antigo ignorado para o tenant {TenantId}.", tenant.Id);
+                return;
+            }
 
             var sql = novaDataExpiracao is not null
                 ? "UPDATE tenants SET status_licenca = @Status, data_expiracao = @DataExpiracao WHERE id = @TenantId"
-                : "UPDATE tenants SET status_licenca = @Status WHERE id = @TenantId";
+                : novoStatus == "cancelado"
+                    // Solta o vínculo pra loja poder receber uma assinatura nova (ver FaturamentoService).
+                    ? "UPDATE tenants SET status_licenca = @Status, asaas_subscription_id = NULL, asaas_invoice_url = NULL WHERE id = @TenantId"
+                    : "UPDATE tenants SET status_licenca = @Status WHERE id = @TenantId";
 
             await connection.ExecuteAsync(new CommandDefinition(
                 sql, new { Status = novoStatus, DataExpiracao = novaDataExpiracao, TenantId = tenant.Id }, cancellationToken: ct));
@@ -96,6 +105,9 @@ namespace EmporioGege.Application.Services
                 await billingNotificationService.EnviarPagamentoConfirmadoAsync(tenant.Id, ct);
         }
 
-        private sealed record TenantParaWebhookRow(Guid Id, string StatusLicencaAnterior);
+        public static DateTime CoberturaAte(DateOnly vencimento) =>
+            vencimento.AddMonths(1).AddDays(5).ToDateTime(TimeOnly.MinValue);
+
+        private sealed record TenantParaWebhookRow(Guid Id, string StatusLicencaAnterior, DateTime DataExpiracao);
     }
 }
