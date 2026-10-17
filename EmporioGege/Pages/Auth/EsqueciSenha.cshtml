@@ -1,0 +1,61 @@
+@page
+@model EmporioGege.Pages.Auth.EsqueciSenhaModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt-br" data-bs-theme="dark">
+<head>
+    <partial name="_Head" />
+    <title>Recuperar senha · PendurAi</title>
+</head>
+<body>
+    <div class="auth-shell">
+        <div class="auth-main">
+            <div class="auth-top">
+                <a asp-page="/Index" class="brand-lockup"><img src="~/img/brand/pendurai-mark.svg" width="28" height="28" alt="" /> <span>Pendur<span class="text-warning">Ai</span></span></a>
+                <button type="button" class="icon-btn" data-pa-theme-toggle aria-label="Alternar tema"><i data-pa-theme-icon class="bi bi-sun"></i></button>
+            </div>
+
+            <div class="auth-center">
+                <main class="auth-card">
+                    @if (Model.Enviado)
+                    {
+                        <div class="display-6 text-warning mb-3"><i class="bi bi-envelope-check"></i></div>
+                        <h1>Confira seu e-mail</h1>
+                        <p class="lead-sm">Se existir uma conta com <strong>@Model.Email</strong>, enviamos um link pra criar uma nova senha. Ele vale por tempo limitado.</p>
+                        <p class="small text-muted">Não chegou? Veja a caixa de spam ou tente de novo em alguns minutos.</p>
+                        <a asp-page="/Auth/Login" class="btn btn-warning w-100 py-2 mt-2">Voltar para o login</a>
+                    }
+                    else
+                    {
+                        <h1>Recuperar senha</h1>
+                        <p class="lead-sm">Informe o e-mail da sua conta e enviamos um link pra você criar uma nova senha.</p>
+
+                        <form method="post" novalidate>
+                            <div class="mb-4">
+                                <label asp-for="Email" class="form-label">E-mail</label>
+                                <input asp-for="Email" type="email" class="form-control" autocomplete="email" autofocus />
+                                <span asp-validation-for="Email" class="invalid-feedback d-block"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-warning w-100 py-2">Enviar link</button>
+                        </form>
+
+                        <p class="mt-4 mb-0 small text-muted">
+                            Lembrou a senha? <a asp-page="/Auth/Login">Entrar</a>
+                        </p>
+                    }
+                </main>
+            </div>
+
+            <a asp-page="/Index" class="link-muted"><i class="bi bi-arrow-left me-1"></i> Voltar para o site</a>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/pendurai.js" asp-append-version="true"></script>
+</body>
+</html>

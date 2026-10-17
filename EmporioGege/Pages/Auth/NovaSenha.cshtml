@@ -1,0 +1,93 @@
+@page
+@model EmporioGege.Pages.Auth.NovaSenhaModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt-br" data-bs-theme="dark">
+<head>
+    <partial name="_Head" />
+    <title>Nova senha · PendurAi</title>
+</head>
+<body>
+    <div class="auth-shell">
+        <div class="auth-main">
+            <div class="auth-top">
+                <a asp-page="/Index" class="brand-lockup"><img src="~/img/brand/pendurai-mark.svg" width="28" height="28" alt="" /> <span>Pendur<span class="text-warning">Ai</span></span></a>
+                <button type="button" class="icon-btn" data-pa-theme-toggle aria-label="Alternar tema"><i data-pa-theme-icon class="bi bi-sun"></i></button>
+            </div>
+
+            <div class="auth-center">
+                <main class="auth-card">
+                    @if (Model.Concluido)
+                    {
+                        <div class="display-6 text-success mb-3"><i class="bi bi-check-circle"></i></div>
+                        <h1>Senha alterada!</h1>
+                        <p class="lead-sm">Sua nova senha já está valendo. Entre com ela pra continuar.</p>
+                        <a asp-page="/Auth/Login" class="btn btn-warning w-100 py-2 mt-2">Entrar no PendurAi</a>
+                    }
+                    else
+                    {
+                        @* No GET o auth-retorno.js escolhe o bloco pelo fragmento da URL; depois de um POST com erro o formulário volta direto. *@
+                        <div data-pa-estado="@(Model.Postado ? "" : "ok")" hidden="@(!Model.Postado)">
+                            <h1>Criar nova senha</h1>
+                            <p class="lead-sm">Escolha uma senha nova pra sua conta.</p>
+
+                            @if (!string.IsNullOrEmpty(Model.MensagemErro))
+                            {
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>@Model.MensagemErro
+                                    <a asp-page="/Auth/EsqueciSenha" class="alert-link d-block mt-1">Pedir novo link</a>
+                                </div>
+                            }
+
+                            <form method="post" novalidate>
+                                <input type="hidden" asp-for="AccessToken" data-pa-access-token />
+                                <div class="mb-3">
+                                    <label asp-for="Senha" class="form-label">Nova senha</label>
+                                    <input asp-for="Senha" type="password" class="form-control" autocomplete="new-password" />
+                                    <span asp-validation-for="Senha" class="invalid-feedback d-block"></span>
+                                </div>
+                                <div class="mb-4">
+                                    <label asp-for="ConfirmarSenha" class="form-label">Confirmar nova senha</label>
+                                    <input asp-for="ConfirmarSenha" type="password" class="form-control" autocomplete="new-password" />
+                                    <span asp-validation-for="ConfirmarSenha" class="invalid-feedback d-block"></span>
+                                </div>
+                                <button type="submit" class="btn btn-warning w-100 py-2">Salvar nova senha</button>
+                            </form>
+                        </div>
+
+                        @if (!Model.Postado)
+                        {
+                            <div data-pa-estado="expirado" hidden>
+                                <div class="display-6 text-warning mb-3"><i class="bi bi-clock-history"></i></div>
+                                <h1>Este link expirou</h1>
+                                <p class="lead-sm">O link de recuperação vale por tempo limitado e só pode ser usado uma vez.</p>
+                                <a asp-page="/Auth/EsqueciSenha" class="btn btn-warning w-100 py-2 mt-2">Pedir novo link</a>
+                            </div>
+
+                            <div data-pa-estado="erro">
+                                <div class="display-6 text-danger mb-3"><i class="bi bi-exclamation-triangle"></i></div>
+                                <h1>Link inválido</h1>
+                                <p class="lead-sm">Abra de novo o link do e-mail de recuperação, sem alterar o endereço, ou peça um novo.</p>
+                                <a asp-page="/Auth/EsqueciSenha" class="btn btn-warning w-100 py-2 mt-2">Pedir novo link</a>
+                            </div>
+                        }
+                    }
+                </main>
+            </div>
+
+            <a asp-page="/Auth/Login" class="link-muted"><i class="bi bi-arrow-left me-1"></i> Voltar para o login</a>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/pendurai.js" asp-append-version="true"></script>
+    @if (!Model.Postado && !Model.Concluido)
+    {
+        <script src="~/js/auth-retorno.js" asp-append-version="true"></script>
+    }
+</body>
+</html>

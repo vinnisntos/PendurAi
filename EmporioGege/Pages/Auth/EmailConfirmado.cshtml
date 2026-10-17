@@ -1,0 +1,52 @@
+@page
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt-br" data-bs-theme="dark">
+<head>
+    <partial name="_Head" />
+    <title>Confirmação de e-mail · PendurAi</title>
+</head>
+<body>
+    <div class="auth-shell">
+        <div class="auth-main">
+            <div class="auth-top">
+                <a asp-page="/Index" class="brand-lockup"><img src="~/img/brand/pendurai-mark.svg" width="28" height="28" alt="" /> <span>Pendur<span class="text-warning">Ai</span></span></a>
+                <button type="button" class="icon-btn" data-pa-theme-toggle aria-label="Alternar tema"><i data-pa-theme-icon class="bi bi-sun"></i></button>
+            </div>
+
+            <div class="auth-center">
+                <main class="auth-card">
+                    <div data-pa-estado="ok" hidden>
+                        <div class="display-6 text-success mb-3"><i class="bi bi-check-circle"></i></div>
+                        <h1>E-mail confirmado!</h1>
+                        <p class="lead-sm">Sua conta está ativa. Agora é só entrar com seu e-mail e senha.</p>
+                        <a asp-page="/Auth/Login" class="btn btn-warning w-100 py-2 mt-2">Entrar no PendurAi</a>
+                    </div>
+
+                    <div data-pa-estado="expirado" hidden>
+                        <div class="display-6 text-warning mb-3"><i class="bi bi-clock-history"></i></div>
+                        <h1>Este link expirou</h1>
+                        <p class="lead-sm">O link de confirmação vale por tempo limitado e só pode ser usado uma vez. Se você já confirmou, é só entrar normalmente.</p>
+                        <a asp-page="/Auth/Login" class="btn btn-warning w-100 py-2 mt-2">Ir para o login</a>
+                        <p class="mt-4 mb-0 small text-muted">Ainda sem acesso? Responda o e-mail de boas-vindas que a gente te ajuda.</p>
+                    </div>
+
+                    <div data-pa-estado="erro">
+                        <div class="display-6 text-danger mb-3"><i class="bi bi-exclamation-triangle"></i></div>
+                        <h1>Link inválido</h1>
+                        <p class="lead-sm">Não conseguimos confirmar seu e-mail com este link. Abra de novo o link do e-mail que enviamos, sem alterar o endereço.</p>
+                        <a asp-page="/Auth/Login" class="btn btn-outline-secondary w-100 py-2 mt-2">Ir para o login</a>
+                    </div>
+                </main>
+            </div>
+
+            <a asp-page="/Index" class="link-muted"><i class="bi bi-arrow-left me-1"></i> Voltar para o site</a>
+        </div>
+    </div>
+
+    <script src="~/js/pendurai.js" asp-append-version="true"></script>
+    <script src="~/js/auth-retorno.js" asp-append-version="true"></script>
+</body>
+</html>

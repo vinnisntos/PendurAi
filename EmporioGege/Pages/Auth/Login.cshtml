@@ -37,7 +37,10 @@
                         </div>
 
                         <div class="mb-4">
-                            <label asp-for="Senha" class="form-label">Senha</label>
+                            <div class="d-flex justify-content-between align-items-baseline">
+                                <label asp-for="Senha" class="form-label">Senha</label>
+                                <a asp-page="/Auth/EsqueciSenha" class="small">Esqueci minha senha</a>
+                            </div>
                             <input asp-for="Senha" type="password" class="form-control" autocomplete="current-password" />
                             <span asp-validation-for="Senha" class="invalid-feedback d-block"></span>
                         </div>
