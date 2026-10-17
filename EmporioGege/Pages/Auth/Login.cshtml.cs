@@ -114,6 +114,8 @@ namespace EmporioGege.Pages.Auth
                             // hora) ainda não converteu pra "pendente" - mensagem própria em vez
                             // de cair no "Licença expirada" genérico, já que aqui é esperado (não
                             // indica problema) e se resolve sozinho em minutos.
+                            "trial" when tenant.DataExpiracao < DateTime.UtcNow.AddHours(-24) =>
+                                "Não conseguimos gerar sua cobrança automaticamente. Fale com o suporte pelo WhatsApp (15) 98163-6193 para liberar seu acesso.",
                             "trial" when tenant.DataExpiracao.Date < DateTime.UtcNow.Date =>
                                 "Seu período de teste terminou. Estamos gerando sua cobrança - você recebe um e-mail com o link de pagamento em instantes. Tente novamente em alguns minutos.",
                             "trial" => null, // Dentro do período de teste: acesso liberado, sem cobrança.

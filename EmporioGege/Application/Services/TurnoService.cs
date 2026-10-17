@@ -95,9 +95,11 @@ namespace EmporioGege.Application.Services
                 new { SaldoSistema = saldoSistema, SaldoInformado = saldoInformado, TenantId = tenantId, TurnoId = turnoId },
                 transaction, cancellationToken: ct));
 
+            var integros = await LedgerOperacoes.VerificarCaixaAsync(connection, transaction, tenantId, turnoId, ct);
+
             await transaction.CommitAsync(ct);
 
-            return new ResultadoFechamentoTurnoDto(turnoId, turno.SaldoInicial, totais.Creditos, totais.Debitos, saldoSistema, saldoInformado, saldoInformado - saldoSistema);
+            return new ResultadoFechamentoTurnoDto(turnoId, turno.SaldoInicial, totais.Creditos, totais.Debitos, saldoSistema, saldoInformado, saldoInformado - saldoSistema, integros);
         }
 
         // Dinheiro que deveria estar na gaveta: fundo de troco + créditos - débitos do ledger.

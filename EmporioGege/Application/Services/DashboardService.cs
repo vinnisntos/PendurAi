@@ -88,7 +88,7 @@ namespace EmporioGege.Application.Services
             var linhas = await connection.QueryAsync<ProdutoMaisVendidoDto>(new CommandDefinition(
                 """
                 SELECT p.id AS ProdutoId, p.nome AS Nome,
-                       SUM(vi.quantidade)::int AS QuantidadeVendida, SUM(vi.subtotal) AS TotalVendido
+                       SUM(COALESCE(vi.quantidade_unidades, vi.quantidade))::int AS QuantidadeVendida, SUM(vi.subtotal) AS TotalVendido
                 FROM vendas_itens vi
                 JOIN vendas v ON v.id = vi.venda_id AND v.tenant_id = vi.tenant_id
                 JOIN produtos p ON p.id = vi.produto_id AND p.tenant_id = vi.tenant_id

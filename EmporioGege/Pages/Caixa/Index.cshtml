@@ -2,7 +2,7 @@
 @using System.Text.Json
 @model EmporioGege.Pages.Caixa.IndexModel
 @{
-    ViewData["Title"] = "Frente de Caixa / PDV";
+    ViewData["Title"] = "Frente de caixa";
     var opcoesJson = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     var catalogoJson = JsonSerializer.Serialize(Model.Produtos, opcoesJson);
     var precosJson = JsonSerializer.Serialize(Model.PrecosDiferenciados, opcoesJson);
@@ -126,7 +126,7 @@
             </select>
             @if (Model.Clientes.Count == 0)
             {
-                <div class="form-text text-warning">Nenhum cliente cadastrado — cadastre em Clientes antes de vender fiado.</div>
+                <div class="form-text text-warning">Nenhum cliente cadastrado. Cadastre em Clientes antes de vender fiado.</div>
             }
         </div>
 

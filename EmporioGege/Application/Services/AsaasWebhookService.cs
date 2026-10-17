@@ -61,6 +61,22 @@ namespace EmporioGege.Application.Services
                 return; // Evento que não mapeamos pra status_licenca (ex.: PAYMENT_CREATED) - ignorado de propósito.
 
             await using var connection = await connectionFactory.CreateOpenConnectionAsync(ct);
+            await using var transaction = await connection.BeginTransactionAsync(ct);
+
+            // Replay: o mesmo evento reenviado (por quem tiver o token, ou reentrega do Asaas depois
+            // de já processado) não muda o status de novo. O registro e a mudança commitam juntos.
+            var eventoId = raiz.TryGetProperty("id", out var idEl) && idEl.ValueKind == JsonValueKind.String ? idEl.GetString() : null;
+            if (eventoId is not null)
+            {
+                var novo = await connection.ExecuteAsync(new CommandDefinition(
+                    "INSERT INTO asaas_eventos (id, evento) VALUES (@Id, @Evento) ON CONFLICT (id) DO NOTHING",
+                    new { Id = eventoId, Evento = evento }, transaction, cancellationToken: ct));
+                if (novo == 0)
+                {
+                    logger.LogInformation("Evento Asaas {EventoId} já processado; ignorado.", eventoId);
+                    return;
+                }
+            }
 
             // Busca o tenant e o status ANTERIOR antes de atualizar - precisamos saber se essa
             // confirmação é a que libera o acesso pela primeira vez (ou reativa após suspensão)
@@ -100,6 +116,8 @@ namespace EmporioGege.Application.Services
 
             await connection.ExecuteAsync(new CommandDefinition(
                 sql, new { Status = novoStatus, DataExpiracao = novaDataExpiracao, TenantId = tenant.Id }, cancellationToken: ct));
+
+            await transaction.CommitAsync(ct);
 
             if (novoStatus == "ativo" && tenant.StatusLicencaAnterior != "ativo")
                 await billingNotificationService.EnviarPagamentoConfirmadoAsync(tenant.Id, ct);

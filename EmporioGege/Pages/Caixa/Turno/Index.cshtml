@@ -1,7 +1,7 @@
 @page
 @model EmporioGege.Pages.Caixa.Turno.IndexModel
 @{
-    ViewData["Title"] = "Controle de Turno";
+    ViewData["Title"] = "Turno de caixa";
 }
 
 <div class="page-header">
@@ -26,6 +26,10 @@
     var quebrou = r.Diferenca != 0;
     <div class="card-custom p-4 mb-4 border @(quebrou ? "border-danger" : "border-success")">
         <h5 class="mb-3">Turno fechado</h5>
+        @if (!r.LancamentosIntegros)
+        {
+            <div class="alert alert-danger"><i class="bi bi-shield-exclamation me-2"></i>Os lançamentos deste caixa foram alterados fora do sistema. Avise o administrador.</div>
+        }
         <div class="row g-3">
             <div class="col-6 col-md-3">
                 <div class="text-muted small">Saldo inicial</div>
@@ -95,17 +99,30 @@ else
                 <h6 class="mb-3">Sangria / Suprimento</h6>
                 <form method="post" asp-page-handler="Lancamento">
                     <div class="mb-2">
+                        <label asp-for="TipoLancamento" class="form-label">Tipo</label>
                         <select class="form-select" asp-for="TipoLancamento">
                             <option value="SANGRIA">Sangria (retirada)</option>
                             <option value="SUPRIMENTO">Suprimento (reforço)</option>
                         </select>
                     </div>
                     <div class="mb-2">
-                        <input type="number" step="0.01" min="0.01" class="form-control" placeholder="Valor" asp-for="ValorLancamento" />
+                        <label asp-for="ValorLancamento" class="form-label">Valor</label>
+                        <input type="number" step="0.01" min="0.01" class="form-control" placeholder="0.00" asp-for="ValorLancamento" />
                     </div>
                     <div class="mb-3">
-                        <input type="text" class="form-control" placeholder="Motivo" asp-for="MotivoLancamento" />
+                        <label asp-for="MotivoLancamento" class="form-label">Motivo</label>
+                        <input type="text" class="form-control" placeholder="Ex.: depósito no banco" asp-for="MotivoLancamento" />
                     </div>
+                    @if (Model.ExigeSupervisor)
+                    {
+                        <div class="small text-muted mb-2"><i class="bi bi-shield-lock me-1"></i>Sangria exige autorização de um administrador</div>
+                        <div class="mb-2">
+                            <input type="email" class="form-control" placeholder="E-mail do administrador" asp-for="SupervisorEmail" autocomplete="off" />
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" class="form-control" placeholder="Senha do administrador" asp-for="SupervisorSenha" autocomplete="off" />
+                        </div>
+                    }
                     <button type="submit" class="btn btn-outline-warning w-100">Registrar</button>
                 </form>
             </div>
@@ -151,16 +168,16 @@ else
                         <tr>
                             <td>@FusoHorarioBrasil.ParaLocal(l.CriadoEm).ToString("dd/MM HH:mm")</td>
                             <td>
-                                @if (l.TipoOperacao == "CREDITO")
-                                {
-                                    <span class="badge bg-success">SUPRIMENTO</span>
+                                @{
+                                    // Venda em dinheiro e fiado recebido também creditam o caixa; não são suprimento.
+                                    var ehVenda = l.Motivo.StartsWith("Venda ");
+                                    var ehFiado = l.Motivo.StartsWith("Pagamento de fiado");
+                                    var rotulo = l.TipoOperacao != "CREDITO" ? "Sangria" : ehVenda ? "Venda" : ehFiado ? "Fiado recebido" : "Suprimento";
+                                    var classe = l.TipoOperacao != "CREDITO" ? "bg-danger" : ehVenda ? "bg-info" : "bg-success";
                                 }
-                                else
-                                {
-                                    <span class="badge bg-danger">SANGRIA</span>
-                                }
+                                <span class="badge @classe">@rotulo</span>
                             </td>
-                            <td>@l.Motivo</td>
+                            <td>@(ehVenda && l.Motivo.Length > 14 ? "Venda #" + l.Motivo.Substring(6, 8) : l.Motivo)</td>
                             <td class="text-end">@l.Valor.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</td>
                         </tr>
                     }

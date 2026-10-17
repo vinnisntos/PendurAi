@@ -7,5 +7,6 @@ namespace EmporioGege.Application.DTOs
         decimal TotalDebitos,
         decimal SaldoSistema,
         decimal SaldoInformado,
-        decimal Diferenca);
+        decimal Diferenca,
+        bool LancamentosIntegros = true);
 }

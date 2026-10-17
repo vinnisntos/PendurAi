@@ -50,7 +50,7 @@ namespace EmporioGege.Application.Services
 
             var sessao = await clienteIsolado.Auth.SignUp(dto.Email, dto.Senha);
             if (sessao?.User?.Id is null)
-                throw new InvalidOperationException("Não foi possível criar o usuário — verifique se o e-mail já está cadastrado ou se a senha é forte o suficiente.");
+                throw new InvalidOperationException("Não foi possível criar o usuário. Verifique se o e-mail já está cadastrado ou se a senha é forte o suficiente.");
 
             var novoUsuarioId = Guid.Parse(sessao.User.Id);
 

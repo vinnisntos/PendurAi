@@ -45,6 +45,11 @@
                         }
 
                         <form method="post" novalidate>
+                            <input type="hidden" asp-for="AbertoEm" />
+                            <div class="visually-hidden" aria-hidden="true">
+                                <label for="Website">Não preencha este campo</label>
+                                <input asp-for="Website" tabindex="-1" autocomplete="off" />
+                            </div>
                             <h2 class="form-section-title">Dados da loja</h2>
                             <div class="row g-3">
                                 <div class="col-md-7">

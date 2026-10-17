@@ -1,13 +1,13 @@
 @page
 @model EmporioGege.Pages.Admin.Vendas.IndexModel
 @{
-    ViewData["Title"] = "Extrato de Vendas";
+    ViewData["Title"] = "Extrato de vendas";
 }
 
 
 <div class="page-header">
     <div>
-        <h1>Extrato de Vendas</h1>
+        <h1>Extrato de vendas</h1>
         <p>Histórico de vendas fechadas, com reimpressão manual de recibo.</p>
     </div>
 </div>
@@ -76,8 +76,8 @@
                     <tr data-venda-id="@v.Id">
                         <td class="text-body-emphasis small">@FusoHorarioBrasil.ParaLocal(v.DataVenda).ToString("dd/MM/yyyy HH:mm")</td>
                         <td><span class="badge @badgeClasse">@origemTexto</span></td>
-                        <td class="text-muted">@(v.ClienteNome ?? "—")</td>
-                        <td class="text-muted">@(v.MetodoPagamento ?? "—")</td>
+                        <td class="text-muted">@(v.ClienteNome ?? "-")</td>
+                        <td class="text-muted">@Rotulos.FormaPagamento(v.MetodoPagamento)</td>
                         <td class="text-end text-body-emphasis fw-medium">@v.TotalVenda.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</td>
                         <td class="text-end">
                             <div class="d-flex justify-content-end align-items-center gap-2">

@@ -15,6 +15,10 @@ namespace EmporioGege.Pages.SuperAdmin
         public decimal FaturamentoGlobal { get; set; }
         public IReadOnlyList<TenantDto> Lojas { get; set; } = [];
 
+        // Trial vencido que o TrialExpiradoProcessor não conseguiu converter em cobrança (ex.: Asaas
+        // recusou os dados). Sem esta lista ninguém ficava sabendo e a loja ficava travada.
+        public IReadOnlyList<TenantDto> TrialsSemCobranca { get; set; } = [];
+
         public async Task OnGetAsync(CancellationToken ct)
         {
             try
@@ -23,6 +27,7 @@ namespace EmporioGege.Pages.SuperAdmin
                 Lojas = lojas;
                 TotalLojas = lojas.Count;
                 LicencasAtivas = lojas.Count(l => l.StatusLicenca == "ativo");
+                TrialsSemCobranca = lojas.Where(l => l.StatusLicenca == "trial" && l.DataExpiracao < DateTime.UtcNow.AddHours(-2)).ToList();
                 TotalUsuarios = await tenantService.ContarUsuariosTotalAsync(ct);
                 FaturamentoGlobal = await tenantService.ObterFaturamentoGlobalAsync(ct);
             }

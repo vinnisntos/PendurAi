@@ -3,11 +3,7 @@
 @{
     Layout = null;
     var br = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
-    var forma = Model.Venda.MetodoPagamento switch
-    {
-        "DINHEIRO" => "Dinheiro", "DEBITO" => "Débito", "CREDITO" => "Crédito", "PIX" => "Pix", "FIADO" => "Fiado",
-        null => "-", var outro => outro
-    };
+    var forma = Rotulos.FormaPagamento(Model.Venda.MetodoPagamento);
 }
 <!DOCTYPE html>
 <html lang="pt-br">

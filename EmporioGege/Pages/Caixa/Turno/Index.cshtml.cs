@@ -11,7 +11,7 @@ using EmporioGege.Core.Interfaces;
 namespace EmporioGege.Pages.Caixa.Turno
 {
     [Authorize(Policy = "CaixaOnly")]
-    public class IndexModel(ITurnoService turnoService, ICaixaLedgerService caixaLedgerService) : PageModel
+    public class IndexModel(ITurnoService turnoService, ICaixaLedgerService caixaLedgerService, ISupervisorAutorizacaoService supervisorAutorizacao) : PageModel
     {
         public TurnoAtualDto? TurnoAtual { get; private set; }
 
@@ -35,6 +35,15 @@ namespace EmporioGege.Pages.Caixa.Turno
 
         [BindProperty]
         public string TipoLancamento { get; set; } = "SANGRIA";
+
+        // string? (não string): com Nullable ligado, string não-nula vira obrigatória em todo POST da página.
+        [BindProperty]
+        public string? SupervisorEmail { get; set; }
+
+        [BindProperty]
+        public string? SupervisorSenha { get; set; }
+
+        public bool ExigeSupervisor => User.IsInRole("vendedor");
 
         [BindProperty]
         [Required(ErrorMessage = "Informe o motivo do lançamento.")]
@@ -93,6 +102,15 @@ namespace EmporioGege.Pages.Caixa.Turno
             }
 
             var tipoOperacao = TipoLancamento == "SUPRIMENTO" ? TipoOperacaoLedger.Credito : TipoOperacaoLedger.Debito;
+
+            // Dinheiro saindo da gaveta pela mão do vendedor precisa de um administrador junto.
+            if (tipoOperacao == TipoOperacaoLedger.Debito && ExigeSupervisor
+                && (string.IsNullOrWhiteSpace(SupervisorEmail) || string.IsNullOrEmpty(SupervisorSenha)
+                    || !await supervisorAutorizacao.AutorizarAsync(UsuarioId.ToString(), SupervisorEmail, SupervisorSenha, ct)))
+            {
+                MensagemErro = "Sangria precisa da autorização de um administrador (e-mail e senha).";
+                return RedirectToPage();
+            }
 
             // Sem teto, a sangria deixava o saldo do caixa negativo. A mensagem não diz quanto há na
             // gaveta, pra não quebrar a contagem cega do fechamento.
