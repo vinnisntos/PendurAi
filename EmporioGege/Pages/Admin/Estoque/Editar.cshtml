@@ -44,6 +44,7 @@
         <div class="col-md-3">
             <label asp-for="EstoqueAtual" class="form-label small text-muted">Estoque atual</label>
             <input asp-for="EstoqueAtual" type="number" min="0" class="form-control" />
+            <input asp-for="EstoqueOriginal" type="hidden" />
             <span asp-validation-for="EstoqueAtual" class="text-danger small"></span>
         </div>
         <div class="col-md-3">

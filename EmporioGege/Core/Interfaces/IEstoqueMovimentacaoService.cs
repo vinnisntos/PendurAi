@@ -7,7 +7,7 @@ namespace EmporioGege.Core.Interfaces
         // Entrada de mercadoria (compra/reposição) - incrementa estoque_atual E deixa rastro
         // em estoque_movimentacoes, diferente de editar o número direto no cadastro do
         // produto (que só fica registrado como AJUSTE_MANUAL, sem motivo/fornecedor).
-        Task RegistrarEntradaAsync(Guid produtoId, int quantidade, string? justificativa, Guid usuarioId, CancellationToken ct = default);
+        Task RegistrarEntradaAsync(Guid produtoId, int quantidade, string? justificativa, Guid usuarioId, decimal? custoUnitario = null, CancellationToken ct = default);
 
         // Baixa manual (quebra/descarte/uso como insumo) - só permitida pra produtos com
         // produtos.permite_baixa_manual = true (restrição de negócio: nem todo produto faz

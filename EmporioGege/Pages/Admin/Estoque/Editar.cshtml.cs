@@ -36,6 +36,9 @@ namespace EmporioGege.Pages.Admin.Estoque
         public int EstoqueAtual { get; set; }
 
         [BindProperty]
+        public int? EstoqueOriginal { get; set; }
+
+        [BindProperty]
         [Range(0, int.MaxValue, ErrorMessage = "Estoque mínimo não pode ser negativo.")]
         public int EstoqueMinimo { get; set; } = 5;
 
@@ -91,6 +94,7 @@ namespace EmporioGege.Pages.Admin.Estoque
             CustoMedio = produto.CustoMedio;
             PrecoVendaBase = produto.PrecoVendaBase;
             EstoqueAtual = produto.EstoqueAtual;
+            EstoqueOriginal = produto.EstoqueAtual;
             EstoqueMinimo = produto.EstoqueMinimo;
             UnidadeMedida = produto.UnidadeMedida;
             QuantidadePorCaixa = produto.QuantidadePorCaixa;
@@ -111,9 +115,17 @@ namespace EmporioGege.Pages.Admin.Estoque
 
             var dto = new SalvarProdutoDto(
                 Id, Nome, CodigoBarras, CustoMedio, PrecoVendaBase, EstoqueAtual, EstoqueMinimo,
-                UnidadeMedida, QuantidadePorCaixa, DataValidade, PrecoCaixa, PrecoAtacado, CodigoNcm, Cfop, PermiteBaixaManual);
+                UnidadeMedida, QuantidadePorCaixa, DataValidade, PrecoCaixa, PrecoAtacado, CodigoNcm, Cfop, PermiteBaixaManual, EstoqueOriginal);
 
-            await produtoService.SalvarAsync(dto, UsuarioId, ct);
+            try
+            {
+                await produtoService.SalvarAsync(dto, UsuarioId, ct);
+            }
+            catch (InvalidOperationException ex)
+            {
+                MensagemErro = ex.Message;
+                return Page();
+            }
 
             return RedirectToPage("Index");
         }

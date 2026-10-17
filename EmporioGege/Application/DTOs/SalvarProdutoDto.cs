@@ -16,5 +16,6 @@ namespace EmporioGege.Application.DTOs
         decimal? PrecoAtacado,
         string? CodigoNcm,
         string? Cfop,
-        bool PermiteBaixaManual);
+        bool PermiteBaixaManual,
+        int? EstoqueOriginal = null); // estoque que a tela carregou; o ajuste é relativo a ele
 }
