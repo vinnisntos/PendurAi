@@ -1,12 +1,12 @@
 @page
 @model EmporioGege.Pages.Admin.Estoque.IndexModel
 @{
-    ViewData["Title"] = "Estoque / Produtos";
+    ViewData["Title"] = "Estoque e produtos";
 }
 
 <div class="page-header">
     <div>
-        <h1>Estoque / Produtos</h1>
+        <h1>Estoque e produtos</h1>
         <p>Cadastro de produtos, preços e controle de estoque.</p>
     </div>
     <div class="d-flex gap-2">
@@ -67,7 +67,7 @@
                             <div class="fw-medium text-body-emphasis">@p.Nome</div>
                             <div class="text-muted small">@p.UnidadeMedida @(p.QuantidadePorCaixa > 1 ? $"· Cx com {p.QuantidadePorCaixa}" : "")</div>
                         </td>
-                        <td class="text-muted">@(p.CodigoBarras ?? "—")</td>
+                        <td class="text-muted">@(p.CodigoBarras ?? "-")</td>
                         <td class="text-end">@p.PrecoVendaBase.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</td>
                         <td class="text-center">
                             <span class="@(estoqueCritico ? "text-danger fw-semibold" : "text-body-emphasis")">@p.EstoqueAtual</span>

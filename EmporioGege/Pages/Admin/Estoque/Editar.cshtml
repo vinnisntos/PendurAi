@@ -68,7 +68,7 @@
         <div class="col-12"><hr class="border-secondary opacity-25" /></div>
 
         <div class="col-12">
-            <p class="text-muted small mb-2">Preços diferenciados (opcional — deixe em branco pra usar o preço de Balcão × unidades por caixa)</p>
+            <p class="text-muted small mb-2">Preços diferenciados (opcional: deixe em branco pra usar o preço de Balcão × unidades por caixa)</p>
         </div>
         <div class="col-md-6">
             <label asp-for="PrecoCaixa" class="form-label small text-muted">Preço da caixa fechada</label>
@@ -82,7 +82,7 @@
         <div class="col-12"><hr class="border-secondary opacity-25" /></div>
 
         <div class="col-12">
-            <p class="text-muted small mb-2">Classificação fiscal (opcional — preencher só quando a emissão de NFC-e for habilitada; consulte um contador se não souber)</p>
+            <p class="text-muted small mb-2">Classificação fiscal (opcional: preencher só quando a emissão de NFC-e for habilitada; consulte um contador se não souber)</p>
         </div>
         <div class="col-md-6">
             <label asp-for="CodigoNcm" class="form-label small text-muted">NCM</label>
@@ -98,7 +98,7 @@
         <div class="col-12 form-check">
             <input asp-for="PermiteBaixaManual" class="form-check-input" />
             <label asp-for="PermiteBaixaManual" class="form-check-label">Permite baixa manual de estoque (uso como insumo, quebra ou descarte)</label>
-            <div class="form-text">Habilite só para produtos usados como insumo, ex. destilados para drinks — não faz sentido para itens como doces/balas, que nunca passam por essa operação.</div>
+            <div class="form-text">Habilite só para produtos usados como insumo, ex. destilados para drinks. Não faz sentido para itens como doces/balas, que nunca passam por essa operação.</div>
         </div>
     </div>
 

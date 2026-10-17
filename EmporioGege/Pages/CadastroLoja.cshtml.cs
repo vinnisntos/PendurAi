@@ -59,6 +59,14 @@ namespace EmporioGege.Pages
         [RegularExpression("^(PIX|BOLETO|CREDIT_CARD)$", ErrorMessage = "Escolha uma forma de pagamento válida.")]
         public string TipoCobranca { get; set; } = "PIX";
 
+        // Anti-robô sem serviço externo: campo invisível que só robô preenche, e tempo mínimo
+        // entre abrir e enviar o formulário.
+        [BindProperty]
+        public string? Website { get; set; }
+
+        [BindProperty]
+        public long AbertoEm { get; set; }
+
         public string? MensagemErro { get; set; }
 
         [TempData]
@@ -69,6 +77,7 @@ namespace EmporioGege.Pages
         public void OnGet(bool sucesso = false)
         {
             ExibirSucesso = sucesso;
+            AbertoEm = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
             if (Plano is not ("start" or "pro" or "enterprise"))
                 Plano = "pro";
@@ -76,6 +85,13 @@ namespace EmporioGege.Pages
 
         public async Task<IActionResult> OnPostAsync(CancellationToken ct)
         {
+            if (!string.IsNullOrEmpty(Website) || DateTimeOffset.UtcNow.ToUnixTimeSeconds() - AbertoEm < 4)
+            {
+                MensagemErro = "Não foi possível enviar o cadastro. Confira os dados e tente de novo.";
+                AbertoEm = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                return Page();
+            }
+
             if (Plano is not ("start" or "pro" or "enterprise"))
                 ModelState.AddModelError(nameof(Plano), "Escolha um plano válido.");
 

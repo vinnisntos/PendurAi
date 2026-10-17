@@ -1,19 +1,34 @@
 ﻿@page
 @model EmporioGege.Pages.SuperAdmin.IndexModel
 @{
-    ViewData["Title"] = "God Mode - Dashboard Geral";
+    ViewData["Title"] = "Painel global";
 }
 
 <div class="container-fluid p-0">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold text-body-emphasis mb-1">👑 God Mode</h2>
+            <h1 class="h3 mb-1">Painel global</h1>
             <p class="text-muted small mb-0">Visão analítica global do ecossistema e gerenciamento de licenças de adegas.</p>
         </div>
         <a asp-page="/SuperAdmin/Adegas/Editar" class="btn btn-warning btn-sm fw-medium d-flex align-items-center gap-2">
             <i class="bi bi-plus-circle-fill"></i> Nova Licença / Adega
         </a>
     </div>
+
+    @if (Model.TrialsSemCobranca.Count > 0)
+    {
+        <div class="callout is-danger mb-4">
+            <div>
+                <h6><i class="bi bi-exclamation-triangle me-1"></i> @Model.TrialsSemCobranca.Count loja(s) com teste vencido e sem cobrança gerada</h6>
+                <p>O Asaas recusou a criação da assinatura. Confira os dados e crie a cobrança manualmente:
+                    @foreach (var loja in Model.TrialsSemCobranca)
+                    {
+                        <a asp-page="/SuperAdmin/Adegas/Editar" asp-route-id="@loja.Id" class="me-2">@loja.NomeFantasia</a>
+                    }
+                </p>
+            </div>
+        </div>
+    }
 
     <div class="row g-4 mb-4">
         <div class="col-md-3">

@@ -219,15 +219,15 @@ namespace EmporioGege.Application.Services
                 throw new ComandaInvalidaException("Comanda já foi fechada ou cancelada.");
 
             var itensComanda = await connection.QueryAsync<ItemComandaRow>(new CommandDefinition(
-                "SELECT produto_id AS ProdutoId, quantidade AS Quantidade, tipo_preco AS TipoPreco FROM comandas_itens WHERE tenant_id = @TenantId AND comanda_id = @ComandaId",
+                "SELECT produto_id AS ProdutoId, quantidade AS Quantidade, tipo_preco AS TipoPreco, preco_unitario_aplicado AS PrecoUnitarioAplicado FROM comandas_itens WHERE tenant_id = @TenantId AND comanda_id = @ComandaId",
                 new { TenantId = tenantId, ComandaId = comandaId }, cancellationToken: ct));
 
             var listaItens = itensComanda.AsList();
             if (listaItens.Count == 0)
-                throw new ComandaInvalidaException("Comanda sem itens não pode ser fechada — cancele-a se não houve consumo.");
+                throw new ComandaInvalidaException("Comanda sem itens não pode ser fechada. Cancele-a se não houve consumo.");
 
             var itensVenda = listaItens
-                .Select(i => new ItemVendaDto(i.ProdutoId, i.Quantidade, i.TipoPreco switch { "CAIXA" => TipoPreco.Caixa, "ATACADO" => TipoPreco.Atacado, _ => TipoPreco.Balcao }))
+                .Select(i => new ItemVendaDto(i.ProdutoId, i.Quantidade, i.TipoPreco switch { "CAIXA" => TipoPreco.Caixa, "ATACADO" => TipoPreco.Atacado, _ => TipoPreco.Balcao }, i.PrecoUnitarioAplicado))
                 .ToList();
 
             // A baixa de estoque real + gravação de vendas/vendas_itens acontece aqui dentro,
@@ -278,6 +278,6 @@ namespace EmporioGege.Application.Services
 
         private sealed record ProdutoRow(string Nome, decimal PrecoVendaBase, decimal CustoMedio, int QuantidadePorCaixa, int EstoqueAtual);
 
-        private sealed record ItemComandaRow(Guid ProdutoId, int Quantidade, string TipoPreco);
+        private sealed record ItemComandaRow(Guid ProdutoId, int Quantidade, string TipoPreco, decimal PrecoUnitarioAplicado);
     }
 }

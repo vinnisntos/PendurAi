@@ -1,12 +1,12 @@
 @page
 @model EmporioGege.Pages.Admin.Clientes.IndexModel
 @{
-    ViewData["Title"] = "Clientes / Fiado";
+    ViewData["Title"] = "Clientes e fiado";
 }
 
 <div class="page-header">
     <div>
-        <h1>Clientes / Fiado</h1>
+        <h1>Clientes e fiado</h1>
         <p>Cadastro de clientes e controle de crédito (PendurAi).</p>
     </div>
     <a asp-page="Editar" class="btn btn-warning fw-semibold">
@@ -46,8 +46,8 @@
                 {
                     <tr>
                         <td class="text-body-emphasis fw-medium">@c.Nome</td>
-                        <td class="text-muted">@(c.Telefone ?? "—")</td>
-                        <td class="text-muted">@(c.CpfRg ?? "—")</td>
+                        <td class="text-muted">@(c.Telefone ?? "-")</td>
+                        <td class="text-muted">@(c.CpfRg ?? "-")</td>
                         <td class="text-end">@c.LimiteCredito.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</td>
                         <td class="text-end @(c.SaldoDevedor > 0 ? "text-warning fw-semibold" : "text-muted")">@c.SaldoDevedor.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</td>
                         <td class="text-end">

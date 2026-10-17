@@ -73,6 +73,9 @@ namespace EmporioGege.Application.Services
 
                     // Preço/custo vêm do produto lido dentro da transação (EstoqueOperacoes),
                     // nunca do cliente — evita venda finalizar com preço adulterado no request.
+                    // Comanda cobra o preço mostrado ao lançar o item; o resto usa o preço resolvido aqui.
+                    itensBaixados = dto.Itens.Zip(itensBaixados, (item, r) => item.PrecoUnitarioFixo is { } fixo ? r with { PrecoUnitarioAplicado = fixo } : r).ToList();
+
                     var totalVenda = dto.Itens.Zip(itensBaixados, (item, r) => r.PrecoUnitarioAplicado * item.Quantidade).Sum();
                     var totalCusto = dto.Itens.Zip(itensBaixados, (item, r) => r.CustoUnitarioAplicado * item.Quantidade).Sum();
                     var itensResultado = dto.Itens
@@ -139,8 +142,8 @@ namespace EmporioGege.Application.Services
                         var subtotal = resultado.PrecoUnitarioAplicado * item.Quantidade;
                         await connection.ExecuteAsync(new CommandDefinition(
                             """
-                            INSERT INTO vendas_itens (id, tenant_id, venda_id, produto_id, quantidade, preco_unitario_aplicado, custo_unitario_aplicado, subtotal)
-                            VALUES (gen_random_uuid(), @TenantId, @VendaId, @ProdutoId, @Quantidade, @PrecoUnitario, @CustoUnitario, @Subtotal)
+                            INSERT INTO vendas_itens (id, tenant_id, venda_id, produto_id, quantidade, preco_unitario_aplicado, custo_unitario_aplicado, subtotal, quantidade_unidades)
+                            VALUES (gen_random_uuid(), @TenantId, @VendaId, @ProdutoId, @Quantidade, @PrecoUnitario, @CustoUnitario, @Subtotal, @QuantidadeUnidades)
                             """,
                             new
                             {
@@ -150,7 +153,8 @@ namespace EmporioGege.Application.Services
                                 item.Quantidade,
                                 PrecoUnitario = resultado.PrecoUnitarioAplicado,
                                 CustoUnitario = resultado.CustoUnitarioAplicado,
-                                Subtotal = subtotal
+                                Subtotal = subtotal,
+                                QuantidadeUnidades = resultado.EstoqueAnterior - resultado.EstoqueAtual
                             },
                             transaction, cancellationToken: ct));
                     }

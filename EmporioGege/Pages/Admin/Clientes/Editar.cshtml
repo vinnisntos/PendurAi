@@ -44,7 +44,7 @@
             <div class="col-12">
                 <div class="text-muted small">Saldo devedor atual</div>
                 <div class="fs-5 @(Model.SaldoDevedorAtual > 0 ? "text-warning" : "text-body-emphasis")">@Model.SaldoDevedorAtual.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</div>
-                <div class="form-text text-muted">Ajustado automaticamente por vendas fiado e pagamentos — não editável aqui.</div>
+                <div class="form-text text-muted">Ajustado automaticamente por vendas fiado e pagamentos. Não é editável aqui.</div>
             </div>
         }
     </div>

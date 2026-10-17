@@ -468,7 +468,7 @@
     btnFechar.addEventListener('click', async () => {
         if (!comandaAtivaId) return;
         if (itensComandaAtiva.length === 0) {
-            mostrarToast('Comanda sem itens — cancele-a em vez de fechar.', 'aviso');
+            mostrarToast('Comanda sem itens. Cancele-a em vez de fechar.', 'aviso');
             return;
         }
         if (metodoPagamentoSelect.value === 'FIADO' && !clienteFiadoSelect.value) {
@@ -502,7 +502,7 @@
     });
 
     // --- autorização de supervisor (overlay simples, sem depender da API JS do Bootstrap
-    // pra evitar problema de ordem de carregamento — o <script nonce="@ViewContext.HttpContext.Items["csp-nonce"]"> da página roda antes do
+    // pra evitar problema de ordem de carregamento — o script da página roda antes do
     // bootstrap.bundle.min.js carregado no fim do _Layout.cshtml) ---
     const overlaySupervisor = document.getElementById('modal-supervisor-overlay');
     const supervisorEmailInput = document.getElementById('supervisor-email');
