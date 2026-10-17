@@ -32,7 +32,7 @@
     letter-spacing: -0.035em;
     font-weight: 600;
     margin: 0 0 1.1rem;
-    max-width: 18ch;
+    max-width: 21ch;
 }
 .lp-hero h1 em { font-style: normal; color: var(--pa-accent-ink); }
 .lp-hero-sub { font-size: 1.1rem; color: var(--pa-ink-muted); max-width: 42ch; margin: 0 0 2rem; line-height: 1.55; }

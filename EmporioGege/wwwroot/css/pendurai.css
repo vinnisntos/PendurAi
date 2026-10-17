@@ -649,3 +649,5 @@ kbd { background: var(--pa-surface-3); color: var(--pa-ink-muted); border: 1px s
 .page-header .d-flex { flex-wrap: wrap; }
 .table-responsive > .table { min-width: 640px; }
 .table td:first-child { min-width: 160px; }
+
+.brand-lockup img { border-radius: 7px; display: block; }
