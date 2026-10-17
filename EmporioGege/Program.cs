@@ -198,12 +198,17 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.Configure<ForwardedHeadersOptions>(o =>
     o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto);
 
-// Chaves do cookie/antiforgery persistidas fora da pasta do deploy: se ficarem num diretório
-// efêmero, cada push na main desloga todos os caixas no meio do turno. Caminho via
-// DataProtection:KeysPath (ex.: /var/lib/pendurai/keys); sem ele, usa o padrão do SO.
+// Chaves do cookie/antiforgery no banco (fora da pasta do deploy): se ficarem num diretório
+// efêmero, cada push na main desloga todos os caixas no meio do turno. Em desenvolvimento fica
+// no padrão do SO, pra máquina de dev não compartilhar chaves com produção.
 var dataProtection = builder.Services.AddDataProtection().SetApplicationName("PendurAi");
-if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath)
-    dataProtection.PersistKeysToFileSystem(new DirectoryInfo(keysPath));
+if (!builder.Environment.IsDevelopment())
+{
+    var connectionStringChaves = builder.Configuration.GetConnectionString("SupabasePostgres")
+        ?? throw new InvalidOperationException("ConnectionStrings:SupabasePostgres não configurada.");
+    builder.Services.Configure<Microsoft.AspNetCore.DataProtection.KeyManagement.KeyManagementOptions>(o =>
+        o.XmlRepository = new PostgresXmlRepository(connectionStringChaves));
+}
 
 builder.Services.AddHealthChecks().AddCheck<BancoHealthCheck>("banco");
 
@@ -235,13 +240,18 @@ app.UseForwardedHeaders();
 
 app.Use(async (context, next) =>
 {
+    // Nonce por requisição: só roda script do próprio site ou inline marcado com ele.
+    var nonce = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16));
+    context.Items["csp-nonce"] = nonce;
     var headers = context.Response.Headers;
     headers["X-Content-Type-Options"] = "nosniff";
-    headers["X-Frame-Options"] = "DENY";
+    headers["X-Frame-Options"] = "SAMEORIGIN"; // o recibo é impresso num iframe da própria app
     headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
-    // shortcut: CSP sem script-src porque as telas ainda têm scripts inline; migrar para nonce antes de endurecer.
-    headers["Content-Security-Policy"] = "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'";
+    // shortcut: style-src aceita inline (atributos style= nas telas); tirar quando migrarem para classes.
+    headers["Content-Security-Policy"] =
+        $"default-src 'self'; script-src 'self' 'nonce-{nonce}'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; " +
+        "font-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'";
     await next();
 });
 

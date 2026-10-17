@@ -54,3 +54,33 @@
         <a asp-page="Index" class="btn btn-outline-secondary">Cancelar</a>
     </div>
 </form>
+
+@if (Model.Id is not null)
+{
+    <div class="panel mt-4" style="max-width: 760px;">
+        <div class="panel-header"><h2>Pagamentos recebidos</h2></div>
+        @if (Model.Pagamentos.Count == 0)
+        {
+            <div class="empty-state"><i class="bi bi-receipt"></i><strong>Nenhum pagamento ainda</strong>Os recebimentos registrados em Clientes aparecem aqui.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Data</th><th>Forma</th><th>Recebido por</th><th class="text-end">Valor</th></tr></thead>
+                    <tbody>
+                        @foreach (var p in Model.Pagamentos)
+                        {
+                            <tr>
+                                <td>@FusoHorarioBrasil.ParaLocal(p.CriadoEm).ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@p.FormaPagamento</td>
+                                <td class="text-muted">@(p.UsuarioNome ?? "-")</td>
+                                <td class="text-end">@p.Valor.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}

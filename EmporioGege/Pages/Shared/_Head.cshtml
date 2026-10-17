@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
 <link rel="stylesheet" href="~/css/pendurai.css" asp-append-version="true" />
-<script>
+<script nonce="@ViewContext.HttpContext.Items["csp-nonce"]">
     (function () {
         var t = null;
         try { t = localStorage.getItem("pendurai-tema"); } catch (e) { }

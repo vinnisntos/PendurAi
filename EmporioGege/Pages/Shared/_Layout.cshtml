@@ -1,4 +1,5 @@
 @using System.Security.Claims
+@inject Microsoft.Extensions.Options.IOptions<EmporioGege.Infrastructure.Impressao.ImpressoraOptions> ImpressoraOpcoes
 @using EmporioGege.Core.Common
 @{
     var nomeLojaImpersonada = User.FindFirst("ImpersonatedTenantNome")?.Value;
@@ -28,6 +29,7 @@
 <html lang="pt-br" data-bs-theme="dark">
 <head>
     <partial name="_Head" />
+    <meta name="pa-impressora-servidor" content="@(ImpressoraOpcoes.Value.Habilitada ? "true" : "false")" />
     <title>@titulo · @nomeLoja</title>
     @await RenderSectionAsync("Head", required: false)
 </head>

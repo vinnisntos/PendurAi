@@ -84,9 +84,9 @@
                                 <button type="button" class="btn btn-sm btn-outline-secondary btn-ver-itens">
                                     <i class="bi bi-list-ul me-1"></i>Ver itens
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-warning btn-reimprimir">
-                                    <i class="bi bi-printer me-1"></i>Reimprimir
-                                </button>
+                                <a href="/Caixa/Recibo/@v.Id" target="_blank" rel="noopener" class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-printer me-1"></i>Recibo
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -103,7 +103,7 @@
 
 @Html.AntiForgeryToken()
 
-<script>
+<script nonce="@ViewContext.HttpContext.Items["csp-nonce"]">
 (function () {
     const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
 

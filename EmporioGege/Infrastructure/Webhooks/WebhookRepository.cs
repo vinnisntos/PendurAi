@@ -55,6 +55,15 @@ namespace EmporioGege.Infrastructure.Webhooks
             return id;
         }
 
+        // Ao iniciar não há nada processando: o que ficou PROCESSANDO foi interrompido por um
+        // restart/deploy. Volta pra fila; o índice único de vendas impede venda duplicada.
+        public async Task<int> RecolocarInterrompidosAsync(CancellationToken ct = default)
+        {
+            await using var connection = await connectionFactory.CreateOpenConnectionAsync(ct);
+            return await connection.ExecuteAsync(new CommandDefinition(
+                "UPDATE webhooks_recebidos SET status = 'RECEBIDO' WHERE status = 'PROCESSANDO'", cancellationToken: ct));
+        }
+
         public async Task<IReadOnlyList<Guid>> ListarPendentesAsync(CancellationToken ct = default)
         {
             await using var connection = await connectionFactory.CreateOpenConnectionAsync(ct);

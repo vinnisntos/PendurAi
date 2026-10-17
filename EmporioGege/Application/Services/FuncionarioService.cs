@@ -13,7 +13,7 @@ namespace EmporioGege.Application.Services
             await using var connection = await connectionFactory.CreateOpenConnectionAsync(ct);
             var linhas = await connection.QueryAsync<FuncionarioDto>(new CommandDefinition(
                 """
-                SELECT p.id AS Id, p.nome AS Nome, p.role AS Role, u.email AS Email
+                SELECT p.id AS Id, p.nome AS Nome, p.role AS Role, u.email AS Email, p.ativo AS Ativo
                 FROM profiles p
                 JOIN auth.users u ON u.id = p.id
                 WHERE p.tenant_id = @TenantId
@@ -22,6 +22,19 @@ namespace EmporioGege.Application.Services
                 new { TenantId = tenantId }, cancellationToken: ct));
 
             return linhas.AsList();
+        }
+
+        // Desliga sem apagar: as vendas e movimentações continuam apontando pro profile.
+        public async Task DefinirAtivoAsync(Guid id, bool ativo, CancellationToken ct = default)
+        {
+            var tenantId = tenantProvider.RequireTenantId();
+
+            await using var connection = await connectionFactory.CreateOpenConnectionAsync(ct);
+            var linhas = await connection.ExecuteAsync(new CommandDefinition(
+                "UPDATE profiles SET ativo = @Ativo, updated_at = now() WHERE id = @Id AND tenant_id = @TenantId AND role <> 'superadmin'",
+                new { Ativo = ativo, Id = id, TenantId = tenantId }, cancellationToken: ct));
+            if (linhas == 0)
+                throw new InvalidOperationException("Funcionário não encontrado.");
         }
 
         public async Task CriarAsync(CriarFuncionarioDto dto, CancellationToken ct = default)

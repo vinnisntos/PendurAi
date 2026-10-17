@@ -18,6 +18,9 @@ namespace EmporioGege.Models
         [Column("role")]
         public string Role { get; set; } = "vendedor";
 
+        [Column("ativo")]
+        public bool Ativo { get; set; } = true;
+
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; }
     }

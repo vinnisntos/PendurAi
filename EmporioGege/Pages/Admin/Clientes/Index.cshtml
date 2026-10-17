@@ -57,7 +57,13 @@
                                     <form method="post" asp-page-handler="RegistrarPagamento" class="d-flex align-items-center gap-1">
                                         <input type="hidden" name="id" value="@c.Id" />
                                         <input type="number" name="valor" step="0.01" min="0.01" max="@c.SaldoDevedor"
-                                               class="form-control form-control-sm" style="width:110px;" placeholder="Valor" required />
+                                               class="form-control form-control-sm" style="width:100px;" placeholder="Valor" required aria-label="Valor recebido" />
+                                        <select name="formaPagamento" class="form-select form-select-sm" style="width:110px;" aria-label="Forma de pagamento">
+                                            <option value="DINHEIRO">Dinheiro</option>
+                                            <option value="PIX">Pix</option>
+                                            <option value="DEBITO">Débito</option>
+                                            <option value="CREDITO">Crédito</option>
+                                        </select>
                                         <button type="submit" class="btn btn-sm btn-outline-success">Receber</button>
                                     </form>
                                 }

@@ -19,6 +19,17 @@ namespace EmporioGege.Infrastructure.Webhooks
         {
             // Recuperação de processo reiniciado: qualquer evento que ficou em RECEBIDO
             // (ex.: app caiu antes de processar) é pego aqui, não só pelos novos sinais da fila.
+            try
+            {
+                using var escopo = scopeFactory.CreateScope();
+                var recolocados = await escopo.ServiceProvider.GetRequiredService<IWebhookRepository>().RecolocarInterrompidosAsync(stoppingToken);
+                if (recolocados > 0)
+                    logger.LogWarning("{Quantidade} webhook(s) interrompido(s) por reinício voltaram para a fila.", recolocados);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Falha ao recolocar webhooks interrompidos.");
+            }
             await ProcessarPendentesAsync(stoppingToken);
 
             var leituraFila = LerFilaEmBackgroundAsync(stoppingToken);
@@ -133,6 +144,12 @@ namespace EmporioGege.Infrastructure.Webhooks
                     await vendaService.FinalizarVendaAsync(
                         new FinalizarVendaDto(null, itensParaVenda, TipoOrigemVenda.ZeDelivery, false, null, ReferenciaExterna: payload.Order.OrderId), ct);
 
+                    await repositorio.MarcarProcessadoAsync(webhookId, registro.TenantId, ct);
+                }
+                catch (Npgsql.PostgresException ex) when (ex.SqlState == "23505" && ex.ConstraintName == "ux_vendas_referencia_externa")
+                {
+                    // O pedido já virou venda (reentrega ou evento de mudança de status do mesmo pedido).
+                    logger.LogInformation("Pedido do webhook {WebhookId} já registrado como venda; evento ignorado.", webhookId);
                     await repositorio.MarcarProcessadoAsync(webhookId, registro.TenantId, ct);
                 }
                 catch (Exception ex)

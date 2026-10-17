@@ -94,6 +94,14 @@ namespace EmporioGege.Pages.Caixa.Turno
 
             var tipoOperacao = TipoLancamento == "SUPRIMENTO" ? TipoOperacaoLedger.Credito : TipoOperacaoLedger.Debito;
 
+            // Sem teto, a sangria deixava o saldo do caixa negativo. A mensagem não diz quanto há na
+            // gaveta, pra não quebrar a contagem cega do fechamento.
+            if (tipoOperacao == TipoOperacaoLedger.Debito && ValorLancamento > await turnoService.ObterSaldoDinheiroAsync(turnoAberto.Id, ct))
+            {
+                MensagemErro = "A sangria é maior que o dinheiro registrado no caixa. Confira o valor.";
+                return RedirectToPage();
+            }
+
             await caixaLedgerService.AdicionarLancamentoAsync(
                 new LancamentoLedgerDto(turnoAberto.Id, ValorLancamento, tipoOperacao, MotivoLancamento), ct);
 

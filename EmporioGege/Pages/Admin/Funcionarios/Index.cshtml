@@ -14,6 +14,15 @@
     </a>
 </div>
 
+@if (!string.IsNullOrEmpty(Model.MensagemSucesso))
+{
+    <div class="alert alert-success">@Model.MensagemSucesso</div>
+}
+@if (!string.IsNullOrEmpty(Model.MensagemErro))
+{
+    <div class="alert alert-danger">@Model.MensagemErro</div>
+}
+
 <div class="card card-custom p-3">
     @if (Model.Funcionarios.Count == 0)
     {
@@ -27,13 +36,14 @@
                     <th>Nome</th>
                     <th>E-mail</th>
                     <th>Cargo</th>
-                    <th style="width:80px;"></th>
+                    <th>Status</th>
+                    <th style="width:160px;"></th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var f in Model.Funcionarios)
                 {
-                    <tr>
+                    <tr class="@(f.Ativo ? "" : "opacity-50")">
                         <td class="text-body-emphasis fw-medium">@f.Nome</td>
                         <td class="text-muted">@f.Email</td>
                         <td>
@@ -41,10 +51,21 @@
                                 @(f.Role == "administrador" ? "Administrador" : "Vendedor / Caixa")
                             </span>
                         </td>
+                        <td><span class="badge @(f.Ativo ? "bg-success" : "bg-secondary")">@(f.Ativo ? "Ativo" : "Desativado")</span></td>
                         <td class="text-end">
-                            <a asp-page="Editar" asp-route-id="@f.Id" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-pencil"></i>
-                            </a>
+                            <div class="d-flex justify-content-end gap-2">
+                                @if (f.Id != Model.UsuarioAtualId)
+                                {
+                                    <form method="post" asp-page-handler="DefinirAtivo" data-confirm="@(f.Ativo ? $"Desativar o acesso de {f.Nome}?" : $"Reativar o acesso de {f.Nome}?")">
+                                        <input type="hidden" name="id" value="@f.Id" />
+                                        <input type="hidden" name="ativo" value="@((!f.Ativo).ToString())" />
+                                        <button type="submit" class="btn btn-sm @(f.Ativo ? "btn-outline-danger" : "btn-outline-success")">@(f.Ativo ? "Desativar" : "Reativar")</button>
+                                    </form>
+                                }
+                                <a asp-page="Editar" asp-route-id="@f.Id" class="btn btn-sm btn-outline-secondary" aria-label="Editar @f.Nome">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 }

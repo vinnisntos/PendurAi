@@ -99,6 +99,11 @@ namespace EmporioGege.Pages.Caixa.Comandas
                 _ => TipoPreco.Balcao
             };
 
+            // Preço de atacado é desconto: só administrador aplica (a tela do caixa nem oferece).
+            if (tipoPreco == TipoPreco.Atacado && !User.IsInRole("administrador") && !User.IsInRole("superadmin"))
+                return new JsonResult(new { sucesso = false, mensagem = "Preço de atacado só pode ser aplicado por um administrador." })
+                { StatusCode = StatusCodes.Status403Forbidden };
+
             try
             {
                 var item = await comandaService.AdicionarItemAsync(comandaId, produtoId, request.Quantidade, tipoPreco, ct);

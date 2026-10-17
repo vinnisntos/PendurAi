@@ -100,6 +100,23 @@ namespace EmporioGege.Application.Services
             return new ResultadoFechamentoTurnoDto(turnoId, turno.SaldoInicial, totais.Creditos, totais.Debitos, saldoSistema, saldoInformado, saldoInformado - saldoSistema);
         }
 
+        // Dinheiro que deveria estar na gaveta: fundo de troco + créditos - débitos do ledger.
+        public async Task<decimal> ObterSaldoDinheiroAsync(Guid turnoId, CancellationToken ct = default)
+        {
+            var tenantId = tenantProvider.RequireTenantId();
+
+            await using var connection = await connectionFactory.CreateOpenConnectionAsync(ct);
+            return await connection.QuerySingleAsync<decimal>(new CommandDefinition(
+                """
+                SELECT t.saldo_inicial + COALESCE((
+                    SELECT SUM(CASE WHEN l.tipo_operacao = 'CREDITO' THEN l.valor ELSE -l.valor END)
+                    FROM caixa_ledger l WHERE l.tenant_id = t.tenant_id AND l.caixa_id = t.id), 0)
+                FROM caixa_turnos t
+                WHERE t.tenant_id = @TenantId AND t.id = @TurnoId
+                """,
+                new { TenantId = tenantId, TurnoId = turnoId }, cancellationToken: ct));
+        }
+
         public async Task<IReadOnlyList<LancamentoTurnoDto>> ListarLancamentosAsync(Guid turnoId, CancellationToken ct = default)
         {
             var tenantId = tenantProvider.RequireTenantId();

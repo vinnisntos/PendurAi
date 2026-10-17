@@ -36,7 +36,7 @@ namespace EmporioGege.Infrastructure.Auth
                 await using var conexao = await connectionFactory.CreateOpenConnectionAsync(context.HttpContext.RequestAborted);
                 linha = await conexao.QuerySingleOrDefaultAsync<SessaoRow>(new CommandDefinition(
                     """
-                    SELECT p.role AS Role, p.tenant_id AS TenantId, t.status_licenca AS StatusLicenca
+                    SELECT p.role AS Role, p.tenant_id AS TenantId, t.status_licenca AS StatusLicenca, p.ativo AS Ativo
                     FROM profiles p LEFT JOIN tenants t ON t.id = p.tenant_id
                     WHERE p.id = @UsuarioId
                     """,
@@ -51,6 +51,7 @@ namespace EmporioGege.Infrastructure.Auth
             }
 
             var bloqueada = linha is null
+                || !linha.Ativo
                 || linha.Role != principal.FindFirstValue(ClaimTypes.Role)
                 || (linha.Role != "superadmin" && linha.StatusLicenca is "suspenso" or "cancelado" or "pendente");
 
@@ -70,6 +71,6 @@ namespace EmporioGege.Infrastructure.Auth
             await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         }
 
-        private sealed record SessaoRow(string Role, Guid? TenantId, string? StatusLicenca);
+        private sealed record SessaoRow(string Role, Guid? TenantId, string? StatusLicenca, bool Ativo);
     }
 }

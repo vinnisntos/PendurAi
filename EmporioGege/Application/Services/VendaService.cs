@@ -114,8 +114,8 @@ namespace EmporioGege.Application.Services
 
                     await connection.ExecuteAsync(new CommandDefinition(
                         """
-                        INSERT INTO vendas (id, tenant_id, turno_id, cliente_id, comanda_id, tipo_origem, status, emitir_nota_fiscal, total_custo, total_venda, metodo_pagamento, data_venda)
-                        VALUES (@Id, @TenantId, @TurnoId, @ClienteId, @ComandaId, @TipoOrigem, 'FECHADA', @EmitirNotaFiscal, @TotalCusto, @TotalVenda, @MetodoPagamento, @DataVenda)
+                        INSERT INTO vendas (id, tenant_id, turno_id, cliente_id, comanda_id, tipo_origem, status, emitir_nota_fiscal, total_custo, total_venda, metodo_pagamento, data_venda, referencia_externa)
+                        VALUES (@Id, @TenantId, @TurnoId, @ClienteId, @ComandaId, @TipoOrigem, 'FECHADA', @EmitirNotaFiscal, @TotalCusto, @TotalVenda, @MetodoPagamento, @DataVenda, @ReferenciaExterna)
                         """,
                         new
                         {
@@ -129,7 +129,8 @@ namespace EmporioGege.Application.Services
                             TotalCusto = totalCusto,
                             TotalVenda = totalVenda,
                             dto.MetodoPagamento,
-                            DataVenda = dataVenda
+                            DataVenda = dataVenda,
+                            dto.ReferenciaExterna
                         },
                         transaction, cancellationToken: ct));
 

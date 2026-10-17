@@ -103,7 +103,7 @@
 </div>
 
 @section Scripts {
-    <script>
+    <script nonce="@ViewContext.HttpContext.Items["csp-nonce"]">
         (function () {
             const input = document.getElementById('busca-estoque');
             if (!input) return;

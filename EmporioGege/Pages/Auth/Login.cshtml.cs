@@ -84,6 +84,12 @@ namespace EmporioGege.Pages.Auth
                     return Page();
                 }
 
+                if (!resultadoPerfil.Ativo)
+                {
+                    MensagemErro = "Seu acesso foi desativado pelo administrador da loja.";
+                    return Page();
+                }
+
                 // 2.5. Bloqueia login se a licença da loja estiver suspensa/cancelada/expirada.
                 // Superadmin fica de fora: ele gerencia todas as lojas e não deve ficar preso
                 // pela licença de uma loja específica (mesmo tendo tenant_id vinculado nos dados de teste).

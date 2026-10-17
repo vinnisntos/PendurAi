@@ -66,6 +66,23 @@
         });
     });
 
+    // Imprime o recibo pelo navegador num iframe escondido (não é bloqueado como pop-up).
+    function imprimirRecibo(vendaId) {
+        var quadro = document.createElement("iframe");
+        quadro.setAttribute("aria-hidden", "true");
+        quadro.style.cssText = "position:fixed;width:0;height:0;border:0;right:0;bottom:0;";
+        quadro.src = "/Caixa/Recibo/" + encodeURIComponent(vendaId);
+        document.body.appendChild(quadro);
+        setTimeout(function () { quadro.remove(); }, 60000);
+    }
+
+    function impressoraNoServidor() {
+        var meta = document.querySelector('meta[name="pa-impressora-servidor"]');
+        return !!meta && meta.content === "true";
+    }
+
     window.PendurAi = window.PendurAi || {};
     window.PendurAi.lerTemaSalvo = lerTemaSalvo;
+    window.PendurAi.imprimirRecibo = imprimirRecibo;
+    window.PendurAi.impressoraNoServidor = impressoraNoServidor;
 })();

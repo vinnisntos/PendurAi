@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -22,7 +23,7 @@ namespace EmporioGege.Pages.Admin.Clientes
             Clientes = await clienteService.ListarAsync(ct);
         }
 
-        public async Task<IActionResult> OnPostRegistrarPagamentoAsync(Guid id, decimal valor, CancellationToken ct)
+        public async Task<IActionResult> OnPostRegistrarPagamentoAsync(Guid id, decimal valor, string formaPagamento, CancellationToken ct)
         {
             if (valor <= 0)
             {
@@ -32,7 +33,7 @@ namespace EmporioGege.Pages.Admin.Clientes
 
             try
             {
-                await clienteService.RegistrarPagamentoAsync(id, valor, ct);
+                await clienteService.RegistrarPagamentoAsync(id, valor, formaPagamento ?? "DINHEIRO", Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!), ct);
             }
             catch (InvalidOperationException ex)
             {

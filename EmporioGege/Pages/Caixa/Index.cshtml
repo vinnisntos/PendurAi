@@ -140,7 +140,7 @@
 
 @Html.AntiForgeryToken()
 
-<script>
+<script nonce="@ViewContext.HttpContext.Items["csp-nonce"]">
 (function () {
     const catalogo = @Html.Raw(catalogoJson);
     const precosDiferenciados = @Html.Raw(precosJson);
@@ -467,8 +467,10 @@
 
             if (resposta.ok && resultado.sucesso) {
                 mostrarToast('Venda finalizada com sucesso!', 'sucesso');
-                if (resultado.reciboImpresso === false) {
-                    mostrarToast('Venda registrada, mas o recibo não imprimiu — confira a impressora.', 'aviso');
+                if (!PendurAi.impressoraNoServidor()) {
+                    PendurAi.imprimirRecibo(resultado.vendaId);
+                } else if (resultado.reciboImpresso === false) {
+                    mostrarToast('Venda registrada, mas o recibo não imprimiu. Confira a impressora.', 'aviso');
                 }
                 carrinho.clear();
                 renderizarCarrinho();

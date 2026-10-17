@@ -64,7 +64,7 @@
                                 @if (c.Status == "ABERTA")
                                 {
                                     <form method="post" asp-page-handler="Cancelar" asp-route-id="@c.Id"
-                                          onsubmit="return confirm('Cancelar a comanda @c.NumeroComanda? Essa ação não pode ser desfeita.');">
+                                          data-confirm="Cancelar a comanda @c.NumeroComanda? Essa ação não pode ser desfeita.">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">Cancelar</button>
                                     </form>
                                 }
@@ -82,7 +82,7 @@
     }
 </div>
 
-<script>
+<script nonce="@ViewContext.HttpContext.Items["csp-nonce"]">
 (function () {
     function formatarMoeda(valor) {
         return (valor ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });

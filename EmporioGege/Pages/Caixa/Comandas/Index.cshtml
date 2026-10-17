@@ -167,7 +167,7 @@
 
 @Html.AntiForgeryToken()
 
-<script>
+<script nonce="@ViewContext.HttpContext.Items["csp-nonce"]">
 (function () {
     const catalogo = @Html.Raw(catalogoJson);
     const precosDiferenciados = @Html.Raw(precosJson);
@@ -488,8 +488,10 @@
                 comandas.delete(comandaAtivaId);
                 fecharPainel();
                 mostrarToast('Comanda fechada com sucesso!', 'sucesso');
-                if (resultado.reciboImpresso === false) {
-                    mostrarToast('Comanda fechada, mas o recibo não imprimiu — confira a impressora.', 'aviso');
+                if (!PendurAi.impressoraNoServidor()) {
+                    PendurAi.imprimirRecibo(resultado.vendaId);
+                } else if (resultado.reciboImpresso === false) {
+                    mostrarToast('Comanda fechada, mas o recibo não imprimiu. Confira a impressora.', 'aviso');
                 }
             } else {
                 mostrarToast(resultado.mensagem ?? 'Não foi possível fechar a comanda.', 'erro');
@@ -500,7 +502,7 @@
     });
 
     // --- autorização de supervisor (overlay simples, sem depender da API JS do Bootstrap
-    // pra evitar problema de ordem de carregamento — o <script> da página roda antes do
+    // pra evitar problema de ordem de carregamento — o <script nonce="@ViewContext.HttpContext.Items["csp-nonce"]"> da página roda antes do
     // bootstrap.bundle.min.js carregado no fim do _Layout.cshtml) ---
     const overlaySupervisor = document.getElementById('modal-supervisor-overlay');
     const supervisorEmailInput = document.getElementById('supervisor-email');

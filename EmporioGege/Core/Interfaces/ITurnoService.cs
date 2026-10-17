@@ -11,5 +11,7 @@ namespace EmporioGege.Core.Interfaces
         Task<ResultadoFechamentoTurnoDto> FecharTurnoAsync(Guid turnoId, decimal saldoInformado, CancellationToken ct = default);
 
         Task<IReadOnlyList<LancamentoTurnoDto>> ListarLancamentosAsync(Guid turnoId, CancellationToken ct = default);
+
+        Task<decimal> ObterSaldoDinheiroAsync(Guid turnoId, CancellationToken ct = default);
     }
 }

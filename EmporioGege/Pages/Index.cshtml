@@ -13,7 +13,7 @@
     <meta property="og:image" content="https://pendurai.vinnisantos.com.br/img/produto-painel.png" />
     <title>PendurAi · Caixa e gestão para adegas e mercados</title>
     <link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
-    <script>document.documentElement.classList.add("js");</script>
+    <script nonce="@ViewContext.HttpContext.Items["csp-nonce"]">document.documentElement.classList.add("js");</script>
 </head>
 <body class="lp">
 
@@ -217,7 +217,7 @@
     </footer>
 
     <script src="~/js/pendurai.js" asp-append-version="true"></script>
-    <script>
+    <script nonce="@ViewContext.HttpContext.Items["csp-nonce"]">
         // Revela blocos ao entrar na tela (CSS já ignora isso com prefers-reduced-motion).
         (function () {
             var itens = document.querySelectorAll(".reveal");
