@@ -101,8 +101,9 @@ namespace EmporioGege.Application.Services
                 var sessao = await clienteIsolado.Auth.SignUp(dto.EmailDono, dto.Senha);
                 if (sessao?.User?.Id is null)
                 {
-                    return new CadastroLojaResultado(false, tenantId,
-                        "Sua loja foi registrada, mas não conseguimos criar seu login (verifique se o e-mail já está cadastrado ou se a senha é forte o suficiente). Entre em contato com o suporte informando o CNPJ para finalizarmos manualmente.",
+                    await RemoverTenantOrfaoAsync(tenantId);
+                    return new CadastroLojaResultado(false, null,
+                        "Não conseguimos criar seu login. Verifique se o e-mail já está cadastrado ou use uma senha mais forte, e tente de novo.",
                         "supabase");
                 }
 
@@ -111,8 +112,9 @@ namespace EmporioGege.Application.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "Falha ao criar login Supabase no autocadastro (tenant {TenantId}).", tenantId);
-                return new CadastroLojaResultado(false, tenantId,
-                    "Sua loja foi registrada, mas houve um erro ao criar seu login. Entre em contato com o suporte informando o CNPJ para finalizarmos manualmente.",
+                await RemoverTenantOrfaoAsync(tenantId);
+                return new CadastroLojaResultado(false, null,
+                    "Houve um erro ao criar seu login. Tente de novo em instantes; se persistir, fale com o suporte.",
                     "supabase");
             }
 
@@ -145,6 +147,23 @@ namespace EmporioGege.Application.Services
             return new CadastroLojaResultado(true, tenantId,
                 $"Cadastro recebido! Confirme seu e-mail pelo link que enviamos e faça login - você tem {DiasTrial} dias grátis pra usar o PendurAi sem nenhuma cobrança. Quando quiser assinar, é só clicar em \"Assinar agora\" dentro do painel.",
                 null);
+        }
+
+        // Sem login criado ninguém usa a loja, e o guard de duplicidade (e-mail/CNPJ) travava a
+        // nova tentativa com "cadastro em andamento". Ainda não existe nada ligado ao tenant aqui.
+        private async Task RemoverTenantOrfaoAsync(Guid tenantId)
+        {
+            try
+            {
+                await using var connection = await connectionFactory.CreateOpenConnectionAsync(CancellationToken.None);
+                await connection.ExecuteAsync(new CommandDefinition(
+                    "DELETE FROM tenants WHERE id = @TenantId AND status_licenca = 'trial' AND asaas_customer_id IS NULL",
+                    new { TenantId = tenantId }));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Falha ao remover tenant órfão {TenantId} do autocadastro.", tenantId);
+            }
         }
     }
 }

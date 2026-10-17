@@ -1,209 +1,145 @@
-﻿@using System.Security.Claims
+@using System.Security.Claims
+@inject Microsoft.Extensions.Options.IOptions<EmporioGege.Infrastructure.Impressao.ImpressoraOptions> ImpressoraOpcoes
+@using EmporioGege.Core.Common
 @{
-    var nomeLoja = User.FindFirst("ImpersonatedTenantNome")?.Value;
+    var nomeLojaImpersonada = User.FindFirst("ImpersonatedTenantNome")?.Value;
+    var nomeLoja = nomeLojaImpersonada;
     if (string.IsNullOrWhiteSpace(nomeLoja))
         nomeLoja = User.FindFirst("TenantNome")?.Value;
     if (string.IsNullOrWhiteSpace(nomeLoja))
         nomeLoja = "PendurAi";
+
+    var titulo = ViewData["Title"] as string ?? "Painel";
+    var papel = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    var papelExibicao = papel switch
+    {
+        "superadmin" => "Superadmin",
+        "administrador" => "Administrador",
+        "vendedor" => "Vendedor",
+        _ => papel
+    };
+    var nomeUsuario = User.Identity?.Name ?? "";
+    var inicial = string.IsNullOrEmpty(nomeUsuario) ? "?" : nomeUsuario[..1];
+    var ehOperador = User.IsInRole("vendedor") || User.IsInRole("administrador") || User.IsInRole("superadmin");
+    var ehAdmin = User.IsInRole("administrador") || User.IsInRole("superadmin");
+    var ehSuper = User.IsInRole("superadmin");
+    var hoje = FusoHorarioBrasil.AgoraLocal().ToString("ddd, dd 'de' MMM", new System.Globalization.CultureInfo("pt-BR"));
 }
 <!DOCTYPE html>
 <html lang="pt-br" data-bs-theme="dark">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - @nomeLoja</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
-            body {
-                font-family: 'Poppins', sans-serif;
-                background-color: #0c0c0e;
-                color: #f8f9fa;
-                overflow-x: hidden;
-            }
-
-            /* Estrutura Master */
-            .wrapper {
-                display: flex;
-                width: 100%;
-                align-items: stretch;
-            }
-
-            /* Sidebar Lateral */
-            #sidebar {
-                min-width: 260px;
-                max-width: 260px;
-                background: #141419;
-                border-right: 1px solid rgba(255, 255, 255, 0.05);
-                min-height: 100vh;
-                transition: all 0.3s;
-            }
-
-            .sidebar-header {
-                padding: 1.5rem;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            }
-
-            .brand-text {
-                font-weight: 700;
-                background: linear-gradient(45deg, #ffc107, #ff9800);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                font-size: 1.2rem;
-                text-transform: uppercase;
-            }
-
-            ul.components {
-                padding: 1rem 0;
-            }
-
-            ul li a {
-                padding: 0.8rem 1.5rem;
-                font-size: 0.95rem;
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                color: #a0a0aa;
-                text-decoration: none;
-                transition: all 0.2s;
-            }
-
-            ul li a:hover {
-                color: #ff9800;
-                background: rgba(255, 152, 0, 0.05);
-            }
-
-            ul li.active > a {
-                color: #ffc107;
-                background: rgba(255, 193, 7, 0.1);
-                border-left: 4px solid #ffc107;
-            }
-
-            /* Conteúdo Principal */
-            #content {
-                width: 100%;
-                min-height: 100vh;
-                background: radial-gradient(circle at top right, #1c1207 0%, #0c0c0e 100%);
-            }
-
-            .top-navbar {
-                background: #141419;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-                padding: 0.8rem 2rem;
-            }
-
-            .main-body {
-                padding: 2.5rem;
-            }
-
-            /* Cards Internos */
-            .card-custom {
-                background: rgba(20, 20, 25, 0.6);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                border-radius: 12px;
-            }
-    </style>
+    <partial name="_Head" />
+    <meta name="pa-impressora-servidor" content="@(ImpressoraOpcoes.Value.Habilitada ? "true" : "false")" />
+    <title>@titulo · @nomeLoja</title>
+    @await RenderSectionAsync("Head", required: false)
 </head>
 <body>
+    <a class="visually-hidden-focusable position-absolute m-2 btn btn-warning" href="#conteudo">Pular para o conteúdo</a>
 
-    <div class="wrapper">
-        <nav id="sidebar">
-            <div class="sidebar-header text-center">
-                <span class="brand-text">@nomeLoja</span>
-                <div class="small text-muted" style="font-size: 0.75rem;">Painel de Controle</div>
+    <div class="app">
+        <aside class="app-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar" aria-label="Menu principal">
+            <div class="app-brand">
+                <div class="app-brand-mark" aria-hidden="true">@nomeLoja[..1].ToUpper()</div>
+                <div class="min-w-0 flex-grow-1">
+                    <div class="app-brand-name" title="@nomeLoja">@nomeLoja</div>
+                    <div class="app-brand-sub">PendurAi</div>
+                </div>
+                <button type="button" class="icon-btn d-lg-none" data-bs-dismiss="offcanvas" data-bs-target="#sidebar" aria-label="Fechar menu">
+                    <i class="bi bi-x-lg"></i>
+                </button>
             </div>
 
-            <ul class="list-unstyled components">
-                @if (User.IsInRole("vendedor") || User.IsInRole("administrador") || User.IsInRole("superadmin"))
-                {
-                    <li class="px-3 pt-2 pb-1 small text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Operação</li>
-                    <li><a href="/Caixa/Index"><i class="bi bi-cpu-fill"></i> Frente de Caixa / PDV</a></li>
-                    <li><a href="/Caixa/Comandas"><i class="bi bi-receipt"></i> Comandas</a></li>
-                    <li><a href="/Caixa/Turno"><i class="bi bi-clock-history"></i> Controle de Turno</a></li>
-                }
+            <nav>
+                <ul class="app-nav">
+                    @if (ehOperador)
+                    {
+                        <li class="app-nav-label">Operação</li>
+                        <li><a href="/Caixa/Index"><i class="bi bi-upc-scan"></i> Frente de caixa</a></li>
+                        <li><a href="/Caixa/Comandas"><i class="bi bi-receipt"></i> Comandas</a></li>
+                        <li><a href="/Caixa/Turno"><i class="bi bi-safe"></i> Turno de caixa</a></li>
+                    }
 
-                @if (User.IsInRole("administrador") || User.IsInRole("superadmin"))
-                {
-                    <li class="px-3 pt-3 pb-1 small text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Gerência</li>
-                    <li><a href="/Admin/Index"><i class="bi bi-graph-up-arrow"></i> Dashboard Loja</a></li>
-                    <li><a href="/Admin/Estoque"><i class="bi bi-box-seam"></i> Estoque / Produtos</a></li>
-                    <li><a href="/Admin/Clientes"><i class="bi bi-people"></i> Clientes & Fiado</a></li>
-                    <li><a href="/Admin/Comandas"><i class="bi bi-receipt-cutoff"></i> Comandas</a></li>
-                    <li><a href="/Admin/Vendas"><i class="bi bi-clock-history"></i> Extrato de Vendas</a></li>
-                    <li><a href="/Admin/ProdutosMaisVendidos"><i class="bi bi-trophy"></i> Produtos Mais Vendidos</a></li>
-                    <li><a href="/Admin/Funcionarios"><i class="bi bi-person-badge"></i> Funcionários</a></li>
-                    <li><a href="/Admin/ConfiguracaoFiscal"><i class="bi bi-file-earmark-text"></i> Configuração Fiscal</a></li>
-                }
+                    @if (ehAdmin)
+                    {
+                        <li class="app-nav-label">Gerência</li>
+                        <li><a href="/Admin/Index"><i class="bi bi-grid-1x2"></i> Visão geral</a></li>
+                        <li><a href="/Admin/Estoque"><i class="bi bi-box-seam"></i> Estoque e produtos</a></li>
+                        <li><a href="/Admin/Clientes"><i class="bi bi-people"></i> Clientes e fiado</a></li>
+                        <li><a href="/Admin/Vendas"><i class="bi bi-journal-text"></i> Extrato de vendas</a></li>
+                        <li><a href="/Admin/Comandas"><i class="bi bi-receipt-cutoff"></i> Histórico de comandas</a></li>
+                        <li><a href="/Admin/ProdutosMaisVendidos"><i class="bi bi-bar-chart-line"></i> Mais vendidos</a></li>
+                        <li><a href="/Admin/Funcionarios"><i class="bi bi-person-badge"></i> Funcionários</a></li>
+                        <li><a href="/Admin/ConfiguracaoFiscal"><i class="bi bi-building"></i> Configuração fiscal</a></li>
+                    }
 
-                @if (User.IsInRole("superadmin"))
-                {
-                    <li class="px-3 pt-3 pb-1 small text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">God Mode</li>
-                    <li><a href="/SuperAdmin/Index"><i class="bi bi-shield-lock"></i> Dashboard Geral</a></li>
-                    <li><a href="/SuperAdmin/Adegas"><i class="bi bi-building-gear"></i> Controlar Licenças</a></li>
-                }
-            </ul>
-        </nav>
+                    @if (ehSuper)
+                    {
+                        <li class="app-nav-label">Plataforma</li>
+                        <li><a href="/SuperAdmin/Index"><i class="bi bi-shield-lock"></i> Painel global</a></li>
+                        <li><a href="/SuperAdmin/Adegas"><i class="bi bi-shop"></i> Lojas e licenças</a></li>
+                    }
+                </ul>
+            </nav>
+        </aside>
 
-        <div id="content">
-            <div class="top-navbar d-flex justify-content-between align-items-center">
-                <div class="text-muted small">
-                    <i class="bi bi-calendar3 me-2"></i> @DateTime.Now.ToString("dd/MM/yyyy")
+        <div class="app-main">
+            <header class="app-topbar">
+                <button type="button" class="icon-btn d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar" aria-label="Abrir menu">
+                    <i class="bi bi-list fs-5"></i>
+                </button>
+                <div class="min-w-0">
+                    <div class="app-topbar-title">@titulo</div>
                 </div>
-
-                <div class="d-flex align-items-center gap-3">
-                    <div class="text-end">
-                        <div class="fw-semibold text-light" style="font-size: 0.9rem;">@User.Identity?.Name</div>
-                        <div class="text-warning fw-medium" style="font-size: 0.75rem; text-transform: uppercase;">@User.FindFirst(ClaimTypes.Role)?.Value</div>
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <span class="app-topbar-date d-none d-md-inline me-1">@hoje</span>
+                    <button type="button" class="icon-btn" data-pa-theme-toggle aria-label="Alternar tema">
+                        <i data-pa-theme-icon class="bi bi-sun"></i>
+                    </button>
+                    <div class="dropdown">
+                        <button class="user-chip" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="user-avatar" aria-hidden="true">@inicial</span>
+                            <span class="d-none d-sm-inline text-truncate" style="max-width: 180px;">@nomeUsuario</span>
+                            <i class="bi bi-chevron-down small text-muted"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                            <li class="px-3 py-2">
+                                <div class="small fw-medium text-truncate" style="max-width: 220px;">@nomeUsuario</div>
+                                <div class="small text-muted">@papelExibicao</div>
+                            </li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <form method="post" action="/Auth/Logout">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2">
+                                        <i class="bi bi-box-arrow-right"></i> Sair
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
                     </div>
-                    <div class="vr bg-secondary my-2"></div>
-                    <a href="/Auth/Logout" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1">
-                        <i class="bi bi-box-arrow-right"></i> Sair
-                    </a>
                 </div>
-            </div>
+            </header>
 
-            @{
-                var nomeLojaImpersonada = User.FindFirst("ImpersonatedTenantNome")?.Value;
-            }
             @if (!string.IsNullOrEmpty(nomeLojaImpersonada))
             {
-                <div class="d-flex justify-content-between align-items-center px-4 py-2"
-                     style="background: rgba(255,193,7,.12); border-bottom: 1px solid rgba(255,193,7,.3);">
-                    <span class="small text-warning fw-semibold">
-                        <i class="bi bi-eye-fill me-2"></i>Modo Loja: @nomeLojaImpersonada
-                    </span>
+                <div class="impersonation-bar" role="status">
+                    <span class="fw-medium"><i class="bi bi-eye me-2"></i>Você está dentro da loja <strong>@nomeLojaImpersonada</strong></span>
                     <form method="post" action="/SuperAdmin/Adegas?handler=Sair">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-sm btn-outline-warning">Sair do modo loja</button>
+                        <button type="submit" class="btn btn-sm btn-outline-warning">Sair da loja</button>
                     </form>
                 </div>
             }
 
-            <div class="main-body">
+            <main class="app-content" id="conteudo">
                 @RenderBody()
-            </div>
+            </main>
         </div>
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/pendurai.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
-
-    <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                var path = window.location.pathname;
-                var links = document.querySelectorAll("#sidebar ul li a");
-                links.forEach(function(link) {
-                    if (link.getAttribute("href") === path) {
-                        link.parentElement.classList.add("active");
-                    }
-                });
-            });
-    </script>
 </body>
 </html>

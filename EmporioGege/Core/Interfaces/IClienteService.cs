@@ -10,6 +10,8 @@ namespace EmporioGege.Core.Interfaces
 
         Task<Guid> SalvarAsync(SalvarClienteDto dto, CancellationToken ct = default);
 
-        Task RegistrarPagamentoAsync(Guid id, decimal valor, CancellationToken ct = default);
+        Task RegistrarPagamentoAsync(Guid id, decimal valor, string formaPagamento, Guid usuarioId, CancellationToken ct = default);
+
+        Task<IReadOnlyList<PagamentoFiadoDto>> ListarPagamentosAsync(Guid clienteId, CancellationToken ct = default);
     }
 }

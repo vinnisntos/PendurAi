@@ -13,5 +13,6 @@ namespace EmporioGege.Application.DTOs
         string EmailDono,
         string StatusLicenca,
         DateTime DataExpiracao,
-        DateTime CreatedAt);
+        DateTime CreatedAt,
+        string? AsaasSubscriptionId = null);
 }

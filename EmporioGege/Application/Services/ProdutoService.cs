@@ -49,6 +49,16 @@ namespace EmporioGege.Application.Services
             await using var connection = await connectionFactory.CreateOpenConnectionAsync(ct);
             await using var transaction = await connection.BeginTransactionAsync(ct);
 
+            // Código repetido na mesma loja fazia a busca por código (PDV, Zé Delivery) lançar exceção.
+            if (!string.IsNullOrWhiteSpace(dto.CodigoBarras))
+            {
+                var outro = await connection.QueryFirstOrDefaultAsync<string?>(new CommandDefinition(
+                    "SELECT nome FROM produtos WHERE tenant_id = @TenantId AND codigo_barras = @CodigoBarras AND id <> @Id LIMIT 1",
+                    new { TenantId = tenantId, dto.CodigoBarras, Id = produtoId }, transaction, cancellationToken: ct));
+                if (outro is not null)
+                    throw new InvalidOperationException($"O código de barras {dto.CodigoBarras} já está no produto \"{outro}\".");
+            }
+
             if (dto.Id is null)
             {
                 await connection.ExecuteAsync(new CommandDefinition(
@@ -77,11 +87,16 @@ namespace EmporioGege.Application.Services
                 if (estoqueAnterior is null)
                     throw new InvalidOperationException($"Produto {produtoId} não encontrado para o tenant {tenantId}.");
 
+                // Vendas feitas enquanto a tela estava aberta eram apagadas do saldo: aplica só o que
+                // o usuário mudou em relação ao valor que ele viu, em cima do saldo atual do banco.
+                var deltaEstoque = dto.EstoqueAtual - (dto.EstoqueOriginal ?? estoqueAnterior.Value);
+                var novoEstoque = estoqueAnterior.Value + deltaEstoque;
+
                 await connection.ExecuteAsync(new CommandDefinition(
                     """
                     UPDATE produtos SET
                         nome = @Nome, codigo_barras = @CodigoBarras, custo_medio = @CustoMedio, preco_venda_base = @PrecoVendaBase,
-                        estoque_atual = @EstoqueAtual, estoque_minimo = @EstoqueMinimo, unidade_medida = @UnidadeMedida,
+                        estoque_atual = @NovoEstoque, estoque_minimo = @EstoqueMinimo, unidade_medida = @UnidadeMedida,
                         quantidade_por_caixa = @QuantidadePorCaixa, data_validade = @DataValidade,
                         codigo_ncm = @CodigoNcm, cfop = @Cfop, permite_baixa_manual = @PermiteBaixaManual
                     WHERE id = @Id AND tenant_id = @TenantId
@@ -89,12 +104,11 @@ namespace EmporioGege.Application.Services
                     new
                     {
                         Id = produtoId, TenantId = tenantId, dto.Nome, dto.CodigoBarras, dto.CustoMedio, dto.PrecoVendaBase,
-                        dto.EstoqueAtual, dto.EstoqueMinimo, dto.UnidadeMedida, dto.QuantidadePorCaixa, dto.DataValidade,
+                        NovoEstoque = novoEstoque, dto.EstoqueMinimo, dto.UnidadeMedida, dto.QuantidadePorCaixa, dto.DataValidade,
                         dto.CodigoNcm, dto.Cfop, dto.PermiteBaixaManual
                     },
                     transaction, cancellationToken: ct));
 
-                var deltaEstoque = dto.EstoqueAtual - estoqueAnterior.Value;
                 if (deltaEstoque != 0)
                 {
                     await EstoqueMovimentacaoOperacoes.RegistrarAsync(

@@ -7,10 +7,12 @@ namespace EmporioGege.Application.Services
 {
     public class EstoqueMovimentacaoService(IDbConnectionFactory connectionFactory, ITenantProvider tenantProvider) : IEstoqueMovimentacaoService
     {
-        public async Task RegistrarEntradaAsync(Guid produtoId, int quantidade, string? justificativa, Guid usuarioId, CancellationToken ct = default)
+        public async Task RegistrarEntradaAsync(Guid produtoId, int quantidade, string? justificativa, Guid usuarioId, decimal? custoUnitario = null, CancellationToken ct = default)
         {
             if (quantidade <= 0)
                 throw new ArgumentException("Quantidade de entrada precisa ser maior que zero.", nameof(quantidade));
+            if (custoUnitario < 0)
+                throw new ArgumentException("Custo unitário não pode ser negativo.", nameof(custoUnitario));
 
             var tenantId = tenantProvider.RequireTenantId();
 
@@ -21,9 +23,18 @@ namespace EmporioGege.Application.Services
             // da baixa de venda (EstoqueOperacoes), não precisa de SELECT ... FOR UPDATE antes,
             // já que não há decisão de negócio (ex.: checar estoque insuficiente) dependendo
             // do valor lido primeiro.
+            // Com o custo da compra, recalcula o custo médio ponderado (base do CMV/lucro do dashboard);
+            // sem ele, o custo médio só mudava à mão no cadastro e o lucro ficava errado.
             var linhasAfetadas = await connection.ExecuteAsync(new CommandDefinition(
-                "UPDATE produtos SET estoque_atual = estoque_atual + @Quantidade WHERE id = @ProdutoId AND tenant_id = @TenantId",
-                new { Quantidade = quantidade, ProdutoId = produtoId, TenantId = tenantId }, transaction, cancellationToken: ct));
+                """
+                UPDATE produtos SET
+                    custo_medio = CASE WHEN @CustoUnitario IS NULL THEN custo_medio
+                                       ELSE round((GREATEST(estoque_atual, 0) * custo_medio + @Quantidade * @CustoUnitario::numeric)
+                                                  / (GREATEST(estoque_atual, 0) + @Quantidade), 4) END,
+                    estoque_atual = estoque_atual + @Quantidade
+                WHERE id = @ProdutoId AND tenant_id = @TenantId
+                """,
+                new { Quantidade = quantidade, CustoUnitario = custoUnitario, ProdutoId = produtoId, TenantId = tenantId }, transaction, cancellationToken: ct));
 
             if (linhasAfetadas == 0)
                 throw new InvalidOperationException($"Produto {produtoId} não encontrado para o tenant {tenantId}.");

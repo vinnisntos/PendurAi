@@ -31,7 +31,7 @@ namespace EmporioGege.Infrastructure.Auth
                     return false;
 
                 var perfil = await supabase.From<Profile>().Where(x => x.Id == sessao.User.Id).Single();
-                if (perfil is null)
+                if (perfil is null || !perfil.Ativo) // admin desligado não autoriza mais nada
                     return false;
 
                 if (perfil.Role == "superadmin")

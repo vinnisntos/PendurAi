@@ -68,6 +68,11 @@ namespace EmporioGege.Pages.Caixa
                     _ => TipoPreco.Balcao
                 };
 
+                // Preço de atacado é desconto: só administrador aplica (a tela do caixa nem oferece).
+                if (tipoPreco == TipoPreco.Atacado && !User.IsInRole("administrador") && !User.IsInRole("superadmin"))
+                    return new JsonResult(new { sucesso = false, mensagem = "Preço de atacado só pode ser aplicado por um administrador." })
+                    { StatusCode = StatusCodes.Status403Forbidden };
+
                 itens.Add(new ItemVendaDto(produtoId, item.Quantidade, tipoPreco));
             }
 
@@ -124,6 +129,14 @@ namespace EmporioGege.Pages.Caixa
                 // ex.Message já vem formatado (pt-BR) do próprio construtor da exceção.
                 return new JsonResult(new { sucesso = false, mensagem = ex.Message, clienteId = ex.ClienteId })
                 { StatusCode = StatusCodes.Status409Conflict };
+            }
+            catch (TurnoInvalidoException ex)
+            {
+                return new JsonResult(new { sucesso = false, mensagem = ex.Message }) { StatusCode = StatusCodes.Status409Conflict };
+            }
+            catch (ArgumentException ex)
+            {
+                return new JsonResult(new { sucesso = false, mensagem = ex.Message.Split(" (Parameter")[0] }) { StatusCode = StatusCodes.Status400BadRequest };
             }
         }
 

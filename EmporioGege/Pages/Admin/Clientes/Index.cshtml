@@ -4,10 +4,10 @@
     ViewData["Title"] = "Clientes / Fiado";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h1 class="h3 mb-0 text-white fw-bold">Clientes / Fiado</h1>
-        <p class="text-muted small mb-0">Cadastro de clientes e controle de crédito (PendurAi).</p>
+        <h1>Clientes / Fiado</h1>
+        <p>Cadastro de clientes e controle de crédito (PendurAi).</p>
     </div>
     <a asp-page="Editar" class="btn btn-warning fw-semibold">
         <i class="bi bi-person-plus me-1"></i> Novo Cliente
@@ -30,7 +30,7 @@
     }
     else
     {
-        <table class="table table-dark table-borderless align-middle mb-0">
+        <table class="table table-borderless align-middle mb-0">
             <thead>
                 <tr class="text-muted small text-uppercase">
                     <th>Cliente</th>
@@ -45,7 +45,7 @@
                 @foreach (var c in Model.Clientes)
                 {
                     <tr>
-                        <td class="text-white fw-medium">@c.Nome</td>
+                        <td class="text-body-emphasis fw-medium">@c.Nome</td>
                         <td class="text-muted">@(c.Telefone ?? "—")</td>
                         <td class="text-muted">@(c.CpfRg ?? "—")</td>
                         <td class="text-end">@c.LimiteCredito.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</td>
@@ -57,11 +57,17 @@
                                     <form method="post" asp-page-handler="RegistrarPagamento" class="d-flex align-items-center gap-1">
                                         <input type="hidden" name="id" value="@c.Id" />
                                         <input type="number" name="valor" step="0.01" min="0.01" max="@c.SaldoDevedor"
-                                               class="form-control form-control-sm" style="width:110px;" placeholder="Valor" required />
+                                               class="form-control form-control-sm" style="width:100px;" placeholder="Valor" required aria-label="Valor recebido" />
+                                        <select name="formaPagamento" class="form-select form-select-sm" style="width:110px;" aria-label="Forma de pagamento">
+                                            <option value="DINHEIRO">Dinheiro</option>
+                                            <option value="PIX">Pix</option>
+                                            <option value="DEBITO">Débito</option>
+                                            <option value="CREDITO">Crédito</option>
+                                        </select>
                                         <button type="submit" class="btn btn-sm btn-outline-success">Receber</button>
                                     </form>
                                 }
-                                <a asp-page="Editar" asp-route-id="@c.Id" class="btn btn-sm btn-outline-light">
+                                <a asp-page="Editar" asp-route-id="@c.Id" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                             </div>

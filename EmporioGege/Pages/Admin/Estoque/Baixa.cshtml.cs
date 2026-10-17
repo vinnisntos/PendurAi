@@ -59,9 +59,9 @@ namespace EmporioGege.Pages.Admin.Estoque
                 MensagemErro = $"Estoque insuficiente: disponível {ex.QuantidadeDisponivel}, solicitado {ex.QuantidadeSolicitada}.";
                 return RedirectToPage("Index");
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
             {
-                MensagemErro = ex.Message;
+                MensagemErro = ex.Message.Split(" (Parameter")[0];
                 return RedirectToPage("Index");
             }
 

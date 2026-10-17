@@ -57,7 +57,7 @@ namespace EmporioGege.Pages.Admin.Vendas
         // [inicio, fimExclusivo) - mesma convenção de intervalo usada no DashboardService.
         // De/Ate são datas escolhidas pelo usuário no fuso local (loja no Brasil) - convertê-las
         // pra UTC direto (DateTimeKind.Utc) sem ajustar o offset causava um descasamento de até
-        // 3h com a exibição (que usa .ToLocalTime()): uma venda das 23h37 local (14/07) já
+        // 3h com a exibição (que usava .ToLocalTime(), dependente do fuso do servidor): uma venda das 23h37 local (14/07) já
         // tinha virado dia 15 em UTC, e aparecia dentro de um filtro "De 15/07".
         private async Task<IReadOnlyList<VendaResumoDto>> CarregarAsync(CancellationToken ct)
         {
@@ -79,7 +79,7 @@ namespace EmporioGege.Pages.Admin.Vendas
             var linhas = vendas
                 .Select(v => (IReadOnlyList<string>)
                 [
-                    v.DataVenda.ToLocalTime().ToString("dd/MM/yyyy HH:mm"),
+                    FusoHorarioBrasil.ParaLocal(v.DataVenda).ToString("dd/MM/yyyy HH:mm"),
                     v.TipoOrigem,
                     v.MetodoPagamento ?? "",
                     v.NumeroComanda ?? "",

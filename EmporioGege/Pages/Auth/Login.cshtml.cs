@@ -84,6 +84,12 @@ namespace EmporioGege.Pages.Auth
                     return Page();
                 }
 
+                if (!resultadoPerfil.Ativo)
+                {
+                    MensagemErro = "Seu acesso foi desativado pelo administrador da loja.";
+                    return Page();
+                }
+
                 // 2.5. Bloqueia login se a licença da loja estiver suspensa/cancelada/expirada.
                 // Superadmin fica de fora: ele gerencia todas as lojas e não deve ficar preso
                 // pela licença de uma loja específica (mesmo tendo tenant_id vinculado nos dados de teste).
@@ -111,7 +117,10 @@ namespace EmporioGege.Pages.Auth
                             "trial" when tenant.DataExpiracao.Date < DateTime.UtcNow.Date =>
                                 "Seu período de teste terminou. Estamos gerando sua cobrança - você recebe um e-mail com o link de pagamento em instantes. Tente novamente em alguns minutos.",
                             "trial" => null, // Dentro do período de teste: acesso liberado, sem cobrança.
-                            _ when tenant.DataExpiracao.Date < DateTime.UtcNow.Date =>
+                            // Loja com assinatura no Asaas: quem manda é o status (o webhook suspende no
+                            // atraso). A data só vale pra licença manual, senão a loja em dia era
+                            // bloqueada entre o fim do "vencimento + 5 dias" e a cobrança seguinte.
+                            _ when tenant.AsaasSubscriptionId is null && tenant.DataExpiracao.Date < DateTime.UtcNow.Date =>
                                 "Licença expirada. Entre em contato com o suporte.",
                             _ => null
                         };

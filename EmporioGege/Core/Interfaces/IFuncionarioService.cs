@@ -9,5 +9,7 @@ namespace EmporioGege.Core.Interfaces
         Task CriarAsync(CriarFuncionarioDto dto, CancellationToken ct = default);
 
         Task AtualizarAsync(Guid id, string nome, string role, CancellationToken ct = default);
+
+        Task DefinirAtivoAsync(Guid id, bool ativo, CancellationToken ct = default);
     }
 }

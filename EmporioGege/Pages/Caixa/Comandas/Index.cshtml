@@ -11,36 +11,35 @@
 }
 
 <style>
-    #comandas-wrapper { display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem; align-items: start; }
+    /* Comandas: lista à esquerda, detalhe à direita; empilha abaixo de 992px */
+    #comandas-wrapper { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+    @@media (min-width: 992px) { #comandas-wrapper { grid-template-columns: 290px minmax(0, 1fr); } }
 
-    #lista-comandas { display: flex; flex-direction: column; gap: .6rem; max-height: 75vh; overflow-y: auto; }
+    #lista-comandas { display: flex; flex-direction: column; gap: .5rem; max-height: 75vh; overflow-y: auto; }
+    @@media (max-width: 991.98px) { #lista-comandas { flex-direction: row; overflow-x: auto; max-height: none; padding-bottom: .25rem; } #lista-comandas .comanda-card { min-width: 180px; } }
     .comanda-card {
-        cursor: pointer; padding: .75rem 1rem; border-radius: 10px;
-        border: 1px solid rgba(255,255,255,.08); background: rgba(20,20,25,.6); transition: all .15s ease;
+        cursor: pointer; padding: .75rem 1rem; border-radius: var(--pa-radius);
+        border: 1px solid var(--pa-hairline); background: var(--pa-surface-1);
+        transition: border-color .15s var(--pa-ease), background-color .15s var(--pa-ease);
     }
-    .comanda-card:hover { border-color: rgba(255,193,7,.4); }
-    .comanda-card.ativa { border-color: #ffc107; background: rgba(255,193,7,.08); }
-    .comanda-card .numero { font-weight: 600; color: #fff; }
-    .comanda-card .meta { font-size: .78rem; color: #9a9aa5; }
+    .comanda-card:hover { border-color: var(--pa-hairline-strong); background: var(--pa-surface-2); }
+    .comanda-card.ativa { border-color: var(--pa-accent); background: var(--pa-accent-soft); }
+    .comanda-card .numero { font-weight: 600; color: var(--pa-ink); }
+    .comanda-card .meta { font-size: .78rem; color: var(--pa-ink-muted); }
 
-    #sugestoes-produto-comanda {
-        position: absolute; z-index: 20; width: 100%; max-height: 260px; overflow-y: auto;
-        background: #17171d; border: 1px solid rgba(255,255,255,.08); border-radius: .5rem;
-        margin-top: .25rem; display: none;
-    }
-    #sugestoes-produto-comanda .item-sugestao { padding: .6rem 1rem; cursor: pointer; }
-    #sugestoes-produto-comanda .item-sugestao:hover, #sugestoes-produto-comanda .item-sugestao.ativo { background: rgba(255,193,7,.1); }
+    #sugestoes-produto-comanda { position: absolute; z-index: 20; left: 0; right: 0; max-height: 260px; overflow-y: auto; background: var(--pa-surface-1); border: 1px solid var(--pa-hairline-strong); border-radius: var(--pa-radius); margin-top: .25rem; box-shadow: var(--pa-shadow); display: none; }
+    #sugestoes-produto-comanda .item-sugestao { padding: .6rem 1rem; cursor: pointer; border-bottom: 1px solid var(--pa-hairline); }
+    #sugestoes-produto-comanda .item-sugestao:last-child { border-bottom: 0; }
+    #sugestoes-produto-comanda .item-sugestao:hover, #sugestoes-produto-comanda .item-sugestao.ativo { background: var(--pa-accent-soft); }
 
-    .total-comanda { font-size: 1.8rem; font-weight: 700; color: #ffc107; }
+    .total-comanda { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.03em; color: var(--pa-ink); font-variant-numeric: tabular-nums; }
 
-    .modal-supervisor-overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 1090;
-        display: none; align-items: center; justify-content: center;
-    }
-    .modal-supervisor-box { width: 360px; }
+    .modal-supervisor-overlay { position: fixed; inset: 0; background: rgba(9, 9, 11, .6); z-index: var(--pa-z-overlay); display: none; align-items: center; justify-content: center; padding: 1rem; }
+    .modal-supervisor-box { width: 100%; max-width: 380px; box-shadow: var(--pa-shadow); }
 
-    #toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 1080; }
+    #toast-container { position: fixed; top: 1rem; right: 1rem; z-index: var(--pa-z-toast); max-width: calc(100vw - 2rem); }
 </style>
+
 
 @if (Model.SemTenant)
 {
@@ -50,8 +49,11 @@
     return;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0"><i class="bi bi-receipt me-2"></i>Comandas</h4>
+<div class="page-header">
+    <div>
+        <h1 class="h4 mb-0">Comandas</h1>
+        <p class="text-muted small mb-0">Abra por mesa ou cliente, lance os itens e feche em venda.</p>
+    </div>
     <div class="d-flex gap-2">
         <input type="text" id="novo-numero-comanda" class="form-control form-control-sm" placeholder="Número/mesa..." style="width:180px;" />
         <button type="button" id="btn-abrir-comanda" class="btn btn-sm btn-warning fw-semibold">
@@ -84,7 +86,7 @@
                 <div id="sugestoes-produto-comanda"></div>
             </div>
 
-            <table class="table table-dark table-borderless align-middle mb-3">
+            <table class="table table-borderless align-middle mb-3">
                 <thead>
                     <tr class="text-muted small text-uppercase">
                         <th>Produto</th>
@@ -155,7 +157,7 @@
             <input type="password" id="supervisor-senha" class="form-control" autocomplete="off" />
         </div>
         <div class="d-flex justify-content-end gap-2">
-            <button type="button" id="btn-cancelar-supervisor" class="btn btn-outline-light btn-sm">Cancelar</button>
+            <button type="button" id="btn-cancelar-supervisor" class="btn btn-outline-secondary btn-sm">Cancelar</button>
             <button type="button" id="btn-confirmar-supervisor" class="btn btn-warning btn-sm fw-semibold">Autorizar</button>
         </div>
     </div>
@@ -165,7 +167,7 @@
 
 @Html.AntiForgeryToken()
 
-<script>
+<script nonce="@ViewContext.HttpContext.Items["csp-nonce"]">
 (function () {
     const catalogo = @Html.Raw(catalogoJson);
     const precosDiferenciados = @Html.Raw(precosJson);
@@ -194,7 +196,7 @@
     function mostrarToast(mensagem, tipo) {
         const cor = tipo === 'erro' ? 'bg-danger' : tipo === 'aviso' ? 'bg-warning text-dark' : 'bg-success';
         const toast = document.createElement('div');
-        toast.className = `toast align-items-center text-white ${cor} border-0 mb-2 show`;
+        toast.className = `toast align-items-center text-body-emphasis ${cor} border-0 mb-2 show`;
         toast.innerHTML = `<div class="d-flex"><div class="toast-body">${escapeHtml(mensagem)}</div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Fechar"></button></div>`;
         toast.querySelector('.btn-close').addEventListener('click', () => toast.remove());
@@ -486,8 +488,10 @@
                 comandas.delete(comandaAtivaId);
                 fecharPainel();
                 mostrarToast('Comanda fechada com sucesso!', 'sucesso');
-                if (resultado.reciboImpresso === false) {
-                    mostrarToast('Comanda fechada, mas o recibo não imprimiu — confira a impressora.', 'aviso');
+                if (!PendurAi.impressoraNoServidor()) {
+                    PendurAi.imprimirRecibo(resultado.vendaId);
+                } else if (resultado.reciboImpresso === false) {
+                    mostrarToast('Comanda fechada, mas o recibo não imprimiu. Confira a impressora.', 'aviso');
                 }
             } else {
                 mostrarToast(resultado.mensagem ?? 'Não foi possível fechar a comanda.', 'erro');
@@ -498,7 +502,7 @@
     });
 
     // --- autorização de supervisor (overlay simples, sem depender da API JS do Bootstrap
-    // pra evitar problema de ordem de carregamento — o <script> da página roda antes do
+    // pra evitar problema de ordem de carregamento — o <script nonce="@ViewContext.HttpContext.Items["csp-nonce"]"> da página roda antes do
     // bootstrap.bundle.min.js carregado no fim do _Layout.cshtml) ---
     const overlaySupervisor = document.getElementById('modal-supervisor-overlay');
     const supervisorEmailInput = document.getElementById('supervisor-email');

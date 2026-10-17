@@ -14,10 +14,12 @@ namespace EmporioGege.Pages
 
         [BindProperty]
         [Required(ErrorMessage = "Informe o nome da loja.")]
+        [StringLength(120, ErrorMessage = "Nome muito longo.")]
         public string NomeFantasia { get; set; } = default!;
 
         [BindProperty]
         [Required(ErrorMessage = "Informe seu nome completo.")]
+        [StringLength(120, ErrorMessage = "Nome muito longo.")]
         public string NomeRepresentante { get; set; } = default!;
 
         [BindProperty]
@@ -54,6 +56,7 @@ namespace EmporioGege.Pages
 
         [BindProperty]
         [Required(ErrorMessage = "Escolha a forma de pagamento.")]
+        [RegularExpression("^(PIX|BOLETO|CREDIT_CARD)$", ErrorMessage = "Escolha uma forma de pagamento válida.")]
         public string TipoCobranca { get; set; } = "PIX";
 
         public string? MensagemErro { get; set; }
@@ -75,6 +78,10 @@ namespace EmporioGege.Pages
         {
             if (Plano is not ("start" or "pro" or "enterprise"))
                 ModelState.AddModelError(nameof(Plano), "Escolha um plano válido.");
+
+            // O Asaas recusa CNPJ com dígito errado, e o trial ficava preso sem conseguir gerar cobrança.
+            if (!string.IsNullOrEmpty(Cnpj) && !EmporioGege.Core.Common.Cnpj.EhValido(Cnpj))
+                ModelState.AddModelError(nameof(Cnpj), "CNPJ inválido. Confira os números.");
 
             if (!ModelState.IsValid)
                 return Page();

@@ -116,10 +116,12 @@ namespace EmporioGege.Application.Services
             var tenantId = tenantProvider.RequireTenantId();
 
             await using var connection = await connectionFactory.CreateOpenConnectionAsync(ct);
+            await using var transaction = await connection.BeginTransactionAsync(ct);
 
+            // FOR UPDATE: o fechamento trava a mesma linha, então o item não entra numa comanda já fechada.
             var comandaStatus = await connection.QuerySingleOrDefaultAsync<string>(new CommandDefinition(
-                "SELECT status FROM comandas WHERE id = @ComandaId AND tenant_id = @TenantId",
-                new { ComandaId = comandaId, TenantId = tenantId }, cancellationToken: ct));
+                "SELECT status FROM comandas WHERE id = @ComandaId AND tenant_id = @TenantId FOR UPDATE",
+                new { ComandaId = comandaId, TenantId = tenantId }, transaction, cancellationToken: ct));
 
             if (comandaStatus is null)
                 throw new ComandaInvalidaException($"Comanda {comandaId} não encontrada.");
@@ -171,6 +173,7 @@ namespace EmporioGege.Application.Services
                 }, cancellationToken: ct));
 
             await TocarAtualizadoEmAsync(connection, tenantId, comandaId, ct);
+            await transaction.CommitAsync(ct); // Npgsql roda os comandos acima na transação aberta da conexão
 
             return new ItemComandaDto(itemId, produtoId, produto.Nome, quantidade, tipoPrecoTexto, precoUnitarioAplicado, subtotal);
         }

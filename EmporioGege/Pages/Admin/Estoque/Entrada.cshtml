@@ -4,12 +4,12 @@
     ViewData["Title"] = "Entrada de Estoque";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h1 class="h3 mb-0 text-white fw-bold">Entrada de Estoque</h1>
-        <p class="text-muted small mb-0">Registre a chegada de mercadoria (compra/reposição) com rastro de auditoria.</p>
+        <h1>Entrada de Estoque</h1>
+        <p>Registre a chegada de mercadoria (compra/reposição) com rastro de auditoria.</p>
     </div>
-    <a asp-page="Historico" class="btn btn-outline-light">
+    <a asp-page="Historico" class="btn btn-outline-secondary">
         <i class="bi bi-clock-history me-1"></i> Ver Histórico
     </a>
 </div>
@@ -35,6 +35,12 @@
         </div>
 
         <div class="mb-3">
+            <label asp-for="CustoUnitario" class="form-label small text-muted">Custo por unidade nesta compra (opcional)</label>
+            <input asp-for="CustoUnitario" type="number" min="0" step="0.01" class="form-control" placeholder="0.00" />
+            <div class="form-text">Se informado, o custo médio do produto é recalculado (média ponderada).</div>
+        </div>
+
+        <div class="mb-3">
             <label asp-for="Justificativa" class="form-label small text-muted">Motivo / fornecedor (opcional)</label>
             <input asp-for="Justificativa" class="form-control" placeholder="Ex.: Compra fornecedor XYZ, NF 12345" />
         </div>
@@ -43,7 +49,7 @@
             <button type="submit" class="btn btn-warning fw-semibold">
                 <i class="bi bi-box-arrow-in-down me-1"></i> Registrar Entrada
             </button>
-            <a asp-page="Index" class="btn btn-outline-light">Cancelar</a>
+            <a asp-page="Index" class="btn btn-outline-secondary">Cancelar</a>
         </div>
     </form>
 </div>

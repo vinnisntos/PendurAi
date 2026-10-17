@@ -30,6 +30,8 @@ namespace EmporioGege.Pages.Admin.Clientes
 
         public decimal SaldoDevedorAtual { get; private set; }
 
+        public IReadOnlyList<PagamentoFiadoDto> Pagamentos { get; private set; } = [];
+
         [TempData]
         public string? MensagemErro { get; set; }
 
@@ -50,6 +52,7 @@ namespace EmporioGege.Pages.Admin.Clientes
             CpfRg = cliente.CpfRg ?? "";
             LimiteCredito = cliente.LimiteCredito;
             SaldoDevedorAtual = cliente.SaldoDevedor;
+            Pagamentos = await clienteService.ListarPagamentosAsync(Id.Value, ct);
 
             return Page();
         }

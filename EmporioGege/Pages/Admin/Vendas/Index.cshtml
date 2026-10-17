@@ -4,17 +4,11 @@
     ViewData["Title"] = "Extrato de Vendas";
 }
 
-<style>
-    .badge-origem-balcao { background: rgba(13, 110, 253, .15); color: #6ea8fe; border: 1px solid rgba(13, 110, 253, .4); }
-    .badge-origem-comanda { background: rgba(255, 193, 7, .15); color: #ffc107; border: 1px solid rgba(255, 193, 7, .4); }
-    .badge-origem-zedelivery { background: rgba(25, 135, 84, .15); color: #52d489; border: 1px solid rgba(25, 135, 84, .4); }
-    .linha-itens-venda td { background: rgba(255, 255, 255, .02); }
-</style>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h1 class="h3 mb-0 text-white fw-bold">Extrato de Vendas</h1>
-        <p class="text-muted small mb-0">Histórico de vendas fechadas, com reimpressão manual de recibo.</p>
+        <h1>Extrato de Vendas</h1>
+        <p>Histórico de vendas fechadas, com reimpressão manual de recibo.</p>
     </div>
 </div>
 
@@ -32,14 +26,14 @@
             <button type="submit" class="btn btn-warning fw-semibold">Filtrar</button>
         </div>
         <div class="col-auto d-flex gap-2">
-            <a class="btn btn-outline-light btn-sm" href="?handler=ExportarXlsx&De=@Model.De&Ate=@Model.Ate"><i class="bi bi-file-earmark-excel me-1"></i>XLSX</a>
-            <a class="btn btn-outline-light btn-sm" href="?handler=ExportarPdf&De=@Model.De&Ate=@Model.Ate"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
-            <a class="btn btn-outline-light btn-sm" href="?handler=ExportarCsv&De=@Model.De&Ate=@Model.Ate"><i class="bi bi-filetype-csv me-1"></i>CSV</a>
-            <a class="btn btn-outline-light btn-sm" href="?handler=ExportarXml&De=@Model.De&Ate=@Model.Ate"><i class="bi bi-file-earmark-code me-1"></i>XML</a>
+            <a class="btn btn-outline-secondary btn-sm" href="?handler=ExportarXlsx&De=@Model.De&Ate=@Model.Ate"><i class="bi bi-file-earmark-excel me-1"></i>XLSX</a>
+            <a class="btn btn-outline-secondary btn-sm" href="?handler=ExportarPdf&De=@Model.De&Ate=@Model.Ate"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
+            <a class="btn btn-outline-secondary btn-sm" href="?handler=ExportarCsv&De=@Model.De&Ate=@Model.Ate"><i class="bi bi-filetype-csv me-1"></i>CSV</a>
+            <a class="btn btn-outline-secondary btn-sm" href="?handler=ExportarXml&De=@Model.De&Ate=@Model.Ate"><i class="bi bi-file-earmark-code me-1"></i>XML</a>
         </div>
         <div class="col-auto ms-auto text-end">
             <div class="text-muted small">Total no período</div>
-            <div class="fs-5 text-white fw-semibold">@Model.TotalPeriodo.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</div>
+            <div class="fs-5 text-body-emphasis fw-semibold">@Model.TotalPeriodo.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</div>
         </div>
     </div>
 </form>
@@ -53,7 +47,7 @@
     }
     else
     {
-        <table class="table table-dark table-borderless align-middle mb-0">
+        <table class="table table-borderless align-middle mb-0">
             <thead>
                 <tr class="text-muted small text-uppercase">
                     <th>Data/Hora</th>
@@ -80,19 +74,19 @@
                         _ => "Balcão"
                     };
                     <tr data-venda-id="@v.Id">
-                        <td class="text-white small">@v.DataVenda.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="text-body-emphasis small">@FusoHorarioBrasil.ParaLocal(v.DataVenda).ToString("dd/MM/yyyy HH:mm")</td>
                         <td><span class="badge @badgeClasse">@origemTexto</span></td>
                         <td class="text-muted">@(v.ClienteNome ?? "—")</td>
                         <td class="text-muted">@(v.MetodoPagamento ?? "—")</td>
-                        <td class="text-end text-white fw-medium">@v.TotalVenda.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</td>
+                        <td class="text-end text-body-emphasis fw-medium">@v.TotalVenda.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</td>
                         <td class="text-end">
                             <div class="d-flex justify-content-end align-items-center gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-light btn-ver-itens">
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-ver-itens">
                                     <i class="bi bi-list-ul me-1"></i>Ver itens
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-warning btn-reimprimir">
-                                    <i class="bi bi-printer me-1"></i>Reimprimir
-                                </button>
+                                <a href="/Caixa/Recibo/@v.Id" target="_blank" rel="noopener" class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-printer me-1"></i>Recibo
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -109,7 +103,7 @@
 
 @Html.AntiForgeryToken()
 
-<script>
+<script nonce="@ViewContext.HttpContext.Items["csp-nonce"]">
 (function () {
     const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
@@ -128,7 +122,7 @@
     function mostrarToast(mensagem, tipo) {
         const cor = tipo === 'erro' ? 'bg-danger' : tipo === 'aviso' ? 'bg-warning text-dark' : 'bg-success';
         const toast = document.createElement('div');
-        toast.className = `toast align-items-center text-white ${cor} border-0 mb-2 show`;
+        toast.className = `toast align-items-center text-body-emphasis ${cor} border-0 mb-2 show`;
         toast.innerHTML = `<div class="d-flex"><div class="toast-body">${escapeHtml(mensagem)}</div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Fechar"></button></div>`;
         toast.querySelector('.btn-close').addEventListener('click', () => toast.remove());

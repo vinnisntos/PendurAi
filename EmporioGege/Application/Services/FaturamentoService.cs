@@ -25,16 +25,44 @@ namespace EmporioGege.Application.Services
         {
             await using var connection = await connectionFactory.CreateOpenConnectionAsync(ct);
 
+            // Duplo clique em "Assinar agora", ou o clique junto com o TrialExpiradoProcessor, criava
+            // dois clientes e duas assinaturas cobrando a mesma loja. O lock de sessão serializa por loja.
+            var chaveLock = $"asaas-assinatura:{tenantId}";
+            var livre = await connection.ExecuteScalarAsync<bool>(new CommandDefinition(
+                "SELECT pg_try_advisory_lock(hashtext(@Chave))", new { Chave = chaveLock }, cancellationToken: ct));
+            if (!livre)
+                return new CriarAssinaturaAsaasResultado(false, null, null, "Já existe uma criação de assinatura em andamento para esta loja.");
+
+            try
+            {
+                return await CriarAssinaturaComLockAsync(connection, tenantId, plano, valorMensalidade, tipoCobranca, ct);
+            }
+            finally
+            {
+                await connection.ExecuteAsync(new CommandDefinition(
+                    "SELECT pg_advisory_unlock(hashtext(@Chave))", new { Chave = chaveLock }, cancellationToken: CancellationToken.None));
+            }
+        }
+
+        private async Task<CriarAssinaturaAsaasResultado> CriarAssinaturaComLockAsync(
+            System.Data.Common.DbConnection connection, Guid tenantId, string plano, decimal valorMensalidade, string tipoCobranca, CancellationToken ct)
+        {
             var loja = await connection.QuerySingleOrDefaultAsync<LojaResumoRow>(new CommandDefinition(
                 """
                 SELECT nome_fantasia AS NomeFantasia, cnpj AS Cnpj, email_dono AS EmailDono,
-                       telefone_dono AS TelefoneDono, asaas_customer_id AS AsaasCustomerId
+                       telefone_dono AS TelefoneDono, asaas_customer_id AS AsaasCustomerId,
+                       asaas_subscription_id AS AsaasSubscriptionId
                 FROM tenants WHERE id = @TenantId
                 """,
                 new { TenantId = tenantId }, cancellationToken: ct));
 
             if (loja is null)
                 return new CriarAssinaturaAsaasResultado(false, null, null, $"Loja {tenantId} não encontrada.");
+
+            // Criar outra sem cancelar a anterior deixava as duas cobrando.
+            if (!string.IsNullOrEmpty(loja.AsaasSubscriptionId))
+                return new CriarAssinaturaAsaasResultado(false, null, null,
+                    $"Esta loja já tem a assinatura {loja.AsaasSubscriptionId} no Asaas. Cancele-a no painel do Asaas antes de criar outra.");
 
             var clienteId = loja.AsaasCustomerId;
             if (string.IsNullOrEmpty(clienteId))
@@ -116,7 +144,7 @@ namespace EmporioGege.Application.Services
             return resultado;
         }
 
-        private sealed record LojaResumoRow(string NomeFantasia, string Cnpj, string EmailDono, string TelefoneDono, string? AsaasCustomerId);
+        private sealed record LojaResumoRow(string NomeFantasia, string Cnpj, string EmailDono, string TelefoneDono, string? AsaasCustomerId, string? AsaasSubscriptionId);
 
         private sealed record TrialResumoRow(string StatusLicenca, string? Plano, decimal? ValorMensalidade, string? FormaPagamentoPreferida);
     }

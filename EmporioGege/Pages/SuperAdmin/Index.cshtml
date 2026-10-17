@@ -7,7 +7,7 @@
 <div class="container-fluid p-0">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold text-light mb-1">👑 God Mode</h2>
+            <h2 class="fw-bold text-body-emphasis mb-1">👑 God Mode</h2>
             <p class="text-muted small mb-0">Visão analítica global do ecossistema e gerenciamento de licenças de adegas.</p>
         </div>
         <a asp-page="/SuperAdmin/Adegas/Editar" class="btn btn-warning btn-sm fw-medium d-flex align-items-center gap-2">
@@ -21,7 +21,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <span class="text-muted small text-uppercase fw-bold" style="font-size: 0.75rem;">Adegas Clientes</span>
-                        <h3 class="fw-bold text-white mt-1 mb-0">@Model.TotalLojas</h3>
+                        <h3 class="fw-bold text-body-emphasis mt-1 mb-0">@Model.TotalLojas</h3>
                     </div>
                     <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-3">
                         <i class="bi bi-building fs-4"></i>
@@ -75,14 +75,14 @@
 
     <div class="card card-custom">
         <div class="card-header bg-transparent border-bottom border-secondary border-opacity-25 p-4 d-flex justify-content-between align-items-center">
-            <h5 class="fw-bold text-white mb-0"><i class="bi bi-hdd-network-fill me-2 text-warning"></i>Licenças Ativas no Sistema</h5>
+            <h5 class="fw-bold text-body-emphasis mb-0"><i class="bi bi-hdd-network-fill me-2 text-warning"></i>Licenças Ativas no Sistema</h5>
             <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.7rem;">AMBIENTE CORE</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0 align-middle" style="background: transparent;">
+                <table class="table table-hover mb-0 align-middle">
                     <thead>
-                        <tr class="text-muted small" style="border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem;">
+                        <tr class="text-muted small">
                             <th class="ps-4 py-3">Adega / Tenant</th>
                             <th>Identificador (Tenant ID)</th>
                             <th>Responsável</th>
@@ -102,13 +102,13 @@
                             var badgeClasse = loja.StatusLicenca == "ativo"
                                 ? "bg-success bg-opacity-10 text-success border border-success border-opacity-25"
                                 : "bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25";
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                            <tr>
                                 <td class="ps-4 d-flex align-items-center gap-3 py-3">
                                     <div class="bg-secondary bg-opacity-25 text-warning rounded-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
                                         <i class="bi bi-shop fs-5"></i>
                                     </div>
                                     <div>
-                                        <div class="fw-semibold text-white">@loja.NomeFantasia</div>
+                                        <div class="fw-semibold text-body-emphasis">@loja.NomeFantasia</div>
                                         <div class="text-muted" style="font-size: 0.75rem;">@loja.CidadeEstado</div>
                                     </div>
                                 </td>
@@ -116,7 +116,7 @@
                                 <td>@loja.NomeRepresentante</td>
                                 <td><span class="badge @badgeClasse px-2 py-1" style="font-size: 0.7rem;">@loja.StatusLicenca.ToUpperInvariant()</span></td>
                                 <td class="pe-4 text-end">
-                                    <a asp-page="/SuperAdmin/Adegas/Editar" asp-route-id="@loja.Id" class="btn btn-sm btn-outline-light border-0 opacity-70 hover-opacity-100"><i class="bi bi-sliders"></i></a>
+                                    <a asp-page="/SuperAdmin/Adegas/Editar" asp-route-id="@loja.Id" class="btn btn-sm btn-outline-secondary border-0 opacity-70 hover-opacity-100"><i class="bi bi-sliders"></i></a>
                                 </td>
                             </tr>
                         }

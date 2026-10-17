@@ -17,6 +17,7 @@ namespace EmporioGege.Core.Interfaces
         Task<Guid?> RegistrarRecebimentoAsync(Guid tenantId, CanalIntegracao canal, string eventoExternoId, string payloadJson, CancellationToken ct = default);
 
         Task<IReadOnlyList<Guid>> ListarPendentesAsync(CancellationToken ct = default);
+        Task<int> RecolocarInterrompidosAsync(CancellationToken ct = default);
 
         // Claim atômico (UPDATE ... WHERE status = 'RECEBIDO') — evita que o catch-up de
         // startup e o leitor da fila em memória processem o mesmo evento em paralelo e

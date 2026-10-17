@@ -24,6 +24,10 @@ namespace EmporioGege.Pages.Admin.Estoque
         [BindProperty]
         public string? Justificativa { get; set; }
 
+        [BindProperty]
+        [Range(0, 1_000_000, ErrorMessage = "Custo unitário inválido.")]
+        public decimal? CustoUnitario { get; set; }
+
         [TempData]
         public string? MensagemErro { get; set; }
 
@@ -44,7 +48,7 @@ namespace EmporioGege.Pages.Admin.Estoque
 
             try
             {
-                await movimentacaoService.RegistrarEntradaAsync(ProdutoId!.Value, Quantidade, Justificativa, UsuarioId, ct);
+                await movimentacaoService.RegistrarEntradaAsync(ProdutoId!.Value, Quantidade, Justificativa, UsuarioId, CustoUnitario, ct);
             }
             catch (InvalidOperationException ex)
             {
