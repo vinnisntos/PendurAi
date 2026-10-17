@@ -4,17 +4,11 @@
     ViewData["Title"] = "Comandas";
 }
 
-<style>
-    .badge-status-aberta { background: rgba(255, 193, 7, .15); color: #ffc107; border: 1px solid rgba(255, 193, 7, .4); }
-    .badge-status-fechada { background: rgba(25, 135, 84, .15); color: #52d489; border: 1px solid rgba(25, 135, 84, .4); }
-    .badge-status-cancelada { background: rgba(108, 117, 125, .2); color: #adb5bd; border: 1px solid rgba(108, 117, 125, .4); }
-    .linha-itens-comanda td { background: rgba(255, 255, 255, .02); }
-</style>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h1 class="h3 mb-0 text-white fw-bold">Comandas</h1>
-        <p class="text-muted small mb-0">Supervisão de todas as comandas da loja (abertas, fechadas e canceladas).</p>
+        <h1>Comandas</h1>
+        <p>Supervisão de todas as comandas da loja (abertas, fechadas e canceladas).</p>
     </div>
 </div>
 
@@ -34,7 +28,7 @@
     }
     else
     {
-        <table class="table table-dark table-borderless align-middle mb-0">
+        <table class="table table-borderless align-middle mb-0">
             <thead>
                 <tr class="text-muted small text-uppercase">
                     <th>Comanda</th>
@@ -56,7 +50,7 @@
                         _ => "badge-status-cancelada"
                     };
                     <tr data-comanda-id="@c.Id">
-                        <td class="text-white fw-medium">@c.NumeroComanda</td>
+                        <td class="text-body-emphasis fw-medium">@c.NumeroComanda</td>
                         <td><span class="badge @badgeClasse">@c.Status</span></td>
                         <td class="text-muted small">@c.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                         <td class="text-muted small">@c.AtualizadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
@@ -64,7 +58,7 @@
                         <td class="text-end">@c.Total.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</td>
                         <td class="text-end">
                             <div class="d-flex justify-content-end align-items-center gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-light btn-ver-itens">
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-ver-itens">
                                     <i class="bi bi-list-ul me-1"></i>Ver itens
                                 </button>
                                 @if (c.Status == "ABERTA")

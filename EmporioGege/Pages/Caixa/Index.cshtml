@@ -10,37 +10,31 @@
 }
 
 <style>
-    #pdv-wrapper { display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; align-items: start; }
+    /* PDV: busca + carrinho à esquerda, total e pagamento à direita; empilha abaixo de 992px */
+    #pdv-wrapper { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+    @@media (min-width: 992px) { #pdv-wrapper { grid-template-columns: minmax(0, 1fr) 330px; } #pdv-wrapper > :last-child { position: sticky; top: calc(var(--pa-topbar-h) + 1rem); } }
 
     .pdv-badge {
         display: inline-flex; align-items: center; gap: .5rem;
-        padding: .5rem 1rem; border-radius: 999px; font-weight: 600; font-size: .85rem;
-        letter-spacing: .3px; cursor: pointer; user-select: none; transition: all .15s ease;
-        border: 1px solid transparent;
+        padding: .45rem .9rem; border-radius: 999px; font-weight: 500; font-size: .85rem;
+        cursor: pointer; user-select: none; border: 1px solid transparent;
+        transition: background-color .15s var(--pa-ease), color .15s var(--pa-ease);
     }
-    .pdv-badge.fiscal { background: rgba(13, 202, 240, .12); border-color: rgba(13, 202, 240, .4); color: #6fe4ff; }
-    .pdv-badge.interno { background: rgba(255, 152, 0, .12); border-color: rgba(255, 152, 0, .4); color: #ffb74d; }
+    .pdv-badge.fiscal { background: var(--pa-info-soft); border-color: color-mix(in srgb, var(--pa-info) 35%, transparent); color: var(--pa-info); }
+    .pdv-badge.interno { background: var(--pa-accent-soft); border-color: var(--pa-accent-ring); color: var(--pa-accent-ink); }
 
-    #busca-produto { font-size: 1.1rem; padding: .75rem 1rem; }
+    #busca-produto { font-size: 1.05rem; padding: .75rem 1rem; min-height: 48px; }
+    #sugestoes-produto { position: absolute; z-index: 20; left: 0; right: 0; max-height: 300px; overflow-y: auto; background: var(--pa-surface-1); border: 1px solid var(--pa-hairline-strong); border-radius: var(--pa-radius); margin-top: .25rem; box-shadow: var(--pa-shadow); display: none; }
+    #sugestoes-produto .item-sugestao { padding: .6rem 1rem; cursor: pointer; border-bottom: 1px solid var(--pa-hairline); }
+    #sugestoes-produto .item-sugestao:last-child { border-bottom: 0; }
+    #sugestoes-produto .item-sugestao:hover, #sugestoes-produto .item-sugestao.ativo { background: var(--pa-accent-soft); }
 
-    #sugestoes-produto {
-        position: absolute; z-index: 20; width: 100%; max-height: 280px; overflow-y: auto;
-        background: #17171d; border: 1px solid rgba(255,255,255,.08); border-radius: .5rem;
-        margin-top: .25rem; display: none;
-    }
-    #sugestoes-produto .item-sugestao { padding: .6rem 1rem; cursor: pointer; }
-    #sugestoes-produto .item-sugestao:hover, #sugestoes-produto .item-sugestao.ativo { background: rgba(255,193,7,.1); }
+    .total-venda { font-size: 2.1rem; font-weight: 600; letter-spacing: -0.03em; color: var(--pa-ink); font-variant-numeric: tabular-nums; }
+    .atalho-hint { font-family: var(--pa-font-mono); font-size: .7rem; color: var(--pa-ink-subtle); border: 1px solid var(--pa-hairline-strong); border-radius: 4px; padding: 1px 6px; margin-left: 6px; }
 
-    #carrinho-corpo tr td { vertical-align: middle; }
-    .total-venda { font-size: 2rem; font-weight: 700; color: #ffc107; }
-
-    .atalho-hint {
-        font-size: .7rem; color: #6c757d; border: 1px solid rgba(255,255,255,.1);
-        border-radius: 4px; padding: 1px 6px; margin-left: 6px;
-    }
-
-    #toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 1080; }
+    #toast-container { position: fixed; top: 1rem; right: 1rem; z-index: var(--pa-z-toast); max-width: calc(100vw - 2rem); }
 </style>
+
 
 @if (Model.SemTenant)
 {
@@ -50,11 +44,14 @@
     return;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0"><i class="bi bi-cpu-fill me-2"></i>Frente de Caixa</h4>
-    <div id="badge-tipo-venda" class="pdv-badge fiscal" title="Alternar com F2">
+<div class="page-header mb-3">
+    <div>
+        <h1>Frente de caixa</h1>
+        <p>Bipe ou busque o produto, confira o carrinho e finalize. Atalhos: F8 busca, F10 finaliza.</p>
+    </div>
+    <div id="badge-tipo-venda" class="pdv-badge fiscal" role="button" tabindex="0" title="Alternar com F2. A emissão automática de NFC-e ainda não está integrada.">
         <i class="bi bi-file-earmark-check"></i>
-        <span id="badge-tipo-venda-texto">COM NOTA FISCAL</span>
+        <span id="badge-tipo-venda-texto">MARCAR P/ NOTA FISCAL</span>
         <span class="atalho-hint">F2</span>
     </div>
 </div>
@@ -68,7 +65,8 @@
         </div>
 
         <div class="card-custom p-3">
-            <table class="table table-dark table-borderless align-middle mb-0">
+            <div class="table-responsive">
+            <table class="table align-middle mb-0">
                 <thead>
                     <tr class="text-muted small text-uppercase">
                         <th>Produto</th>
@@ -85,6 +83,7 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 
@@ -223,7 +222,7 @@
     function mostrarToast(mensagem, tipo) {
         const cor = tipo === 'erro' ? 'bg-danger' : tipo === 'aviso' ? 'bg-warning text-dark' : 'bg-success';
         const toast = document.createElement('div');
-        toast.className = `toast align-items-center text-white ${cor} border-0 mb-2 show`;
+        toast.className = `toast align-items-center text-body-emphasis ${cor} border-0 mb-2 show`;
         toast.innerHTML = `<div class="d-flex"><div class="toast-body">${escapeHtml(mensagem)}</div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Fechar"></button></div>`;
         toast.querySelector('.btn-close').addEventListener('click', () => toast.remove());
@@ -236,7 +235,7 @@
         if (emitirNotaFiscal) {
             badgeTipoVenda.classList.remove('interno');
             badgeTipoVenda.classList.add('fiscal');
-            badgeTipoVendaTexto.textContent = 'COM NOTA FISCAL';
+            badgeTipoVendaTexto.textContent = 'MARCAR P/ NOTA FISCAL';
         } else {
             badgeTipoVenda.classList.remove('fiscal');
             badgeTipoVenda.classList.add('interno');

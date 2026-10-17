@@ -4,12 +4,12 @@
     ViewData["Title"] = "Entrada de Estoque";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h1 class="h3 mb-0 text-white fw-bold">Entrada de Estoque</h1>
-        <p class="text-muted small mb-0">Registre a chegada de mercadoria (compra/reposição) com rastro de auditoria.</p>
+        <h1>Entrada de Estoque</h1>
+        <p>Registre a chegada de mercadoria (compra/reposição) com rastro de auditoria.</p>
     </div>
-    <a asp-page="Historico" class="btn btn-outline-light">
+    <a asp-page="Historico" class="btn btn-outline-secondary">
         <i class="bi bi-clock-history me-1"></i> Ver Histórico
     </a>
 </div>
@@ -43,7 +43,7 @@
             <button type="submit" class="btn btn-warning fw-semibold">
                 <i class="bi bi-box-arrow-in-down me-1"></i> Registrar Entrada
             </button>
-            <a asp-page="Index" class="btn btn-outline-light">Cancelar</a>
+            <a asp-page="Index" class="btn btn-outline-secondary">Cancelar</a>
         </div>
     </form>
 </div>

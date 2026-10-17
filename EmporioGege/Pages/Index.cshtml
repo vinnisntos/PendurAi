@@ -4,625 +4,229 @@
     Layout = null;
 }
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" data-bs-theme="dark">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="PendurAi - sistema de gestão inteligente (PDV + ERP) para adegas e comércio de bebidas: estoque, caixa, fiado e comandas em um só lugar." />
-    <title>PendurAi - Gestão Inteligente para Adegas e Mercados</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <style>
-        * {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: radial-gradient(circle at top left, #2c1a04 0%, #0c0c0e 100%);
-            min-height: 100vh;
-            color: #f8f9fa;
-        }
-
-        /* Navegação institucional */
-        .navbar-institucional {
-            background: rgba(12, 12, 14, 0.85);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .navbar-brand-custom {
-            font-weight: 800;
-            font-size: 1.4rem;
-            letter-spacing: 0.5px;
-            color: #fff !important;
-        }
-
-        .navbar-brand-custom span {
-            color: #ffc107;
-        }
-
-        .navbar-institucional .nav-link {
-            color: #d0d0d5 !important;
-            font-weight: 500;
-            font-size: 0.925rem;
-            padding: 0.5rem 1rem !important;
-            transition: color 0.2s ease;
-        }
-
-        .navbar-institucional .nav-link:hover {
-            color: #ffc107 !important;
-        }
-
-        .btn-nav-entrar {
-            background: linear-gradient(45deg, #ff9800, #e65100);
-            border: none;
-            color: #fff !important;
-            font-weight: 600;
-            padding: 0.5rem 1.5rem;
-            border-radius: 8px;
-        }
-
-        section {
-            scroll-margin-top: 90px;
-        }
-
-        .hero-section {
-            padding: 6rem 1rem 3rem 1rem;
-        }
-
-        .brand-title {
-            font-weight: 800;
-            font-size: 3.5rem;
-            letter-spacing: 1px;
-            background: linear-gradient(45deg, #ffffff, #ffc107);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .text-muted-custom {
-            color: #a0a0aa;
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
-        /* Botões Estilizados */
-        .btn-access {
-            background: linear-gradient(45deg, #ff9800, #e65100);
-            border: none;
-            color: #fff;
-            padding: 0.8rem 2rem;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 15px rgba(230, 81, 0, 0.3);
-        }
-
-        .btn-access:hover {
-            opacity: 0.95;
-            color: #fff;
-            box-shadow: 0 6px 20px rgba(230, 81, 0, 0.5);
-            transform: translateY(-2px);
-        }
-
-        .btn-planos {
-            background: rgba(40, 167, 69, 0.15);
-            border: 1px solid rgba(40, 167, 69, 0.4);
-            color: #28a745;
-            padding: 0.8rem 2rem;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .btn-planos:hover {
-            background: #28a745;
-            color: #fff;
-            transform: translateY(-2px);
-        }
-
-        .btn-contact {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #f8f9fa;
-            padding: 0.8rem 2rem;
-            font-weight: 500;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .btn-contact:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            transform: translateY(-2px);
-        }
-
-        /* Cards de Funcionalidades */
-        .feature-card {
-            background: rgba(20, 20, 25, 0.6);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 2rem;
-            height: 100%;
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(255, 193, 7, 0.3);
-        }
-
-        .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            display: inline-block;
-            color: #ffc107;
-        }
-
-        .feature-card h3 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: #ffc107;
-            margin-bottom: 0.75rem;
-        }
-
-        .feature-card p {
-            font-size: 0.9rem;
-            color: #a0a0aa;
-            margin-bottom: 0;
-            line-height: 1.6;
-        }
-
-        hr.custom-hr {
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            max-width: 900px;
-            margin: 4rem auto;
-        }
-
-        .section-title {
-            font-weight: 700;
-            font-size: 2.25rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .section-eyebrow {
-            color: #ffc107;
-            font-weight: 600;
-            font-size: 0.85rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        /* Tecnologia / como foi desenvolvido */
-        .tech-card {
-            background: rgba(20, 20, 25, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 1.75rem;
-            height: 100%;
-        }
-
-        .tech-card i {
-            font-size: 1.75rem;
-            color: #ffc107;
-            margin-bottom: 0.75rem;
-            display: inline-block;
-        }
-
-        .tech-card h4 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 0.5rem;
-        }
-
-        .tech-card p {
-            font-size: 0.875rem;
-            color: #a0a0aa;
-            margin-bottom: 0;
-            line-height: 1.55;
-        }
-
-        /* Planos */
-        .plano-card {
-            background: rgba(20, 20, 25, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 2.25rem 1.75rem;
-            height: 100%;
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .plano-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .plano-card.destaque {
-            border-color: rgba(255, 193, 7, 0.5);
-            background: rgba(255, 193, 7, 0.05);
-            position: relative;
-        }
-
-        .plano-badge {
-            position: absolute;
-            top: -14px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(45deg, #ff9800, #e65100);
-            color: #fff;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 0.3rem 1rem;
-            border-radius: 999px;
-            white-space: nowrap;
-        }
-
-        .plano-nome {
-            font-weight: 700;
-            font-size: 1.25rem;
-            color: #fff;
-        }
-
-        .plano-preco {
-            font-weight: 800;
-            font-size: 2.25rem;
-            color: #ffc107;
-            margin: 0.5rem 0;
-        }
-
-        .plano-preco small {
-            font-size: 0.95rem;
-            font-weight: 500;
-            color: #a0a0aa;
-        }
-
-        .plano-card ul {
-            list-style: none;
-            padding: 0;
-            margin: 1.25rem 0;
-            text-align: left;
-        }
-
-        .plano-card ul li {
-            font-size: 0.875rem;
-            color: #d0d0d5;
-            padding: 0.35rem 0;
-        }
-
-        .plano-card ul li i {
-            color: #28a745;
-            margin-right: 0.5rem;
-        }
-
-        /* Desenvolvedor */
-        .dev-card {
-            background: rgba(20, 20, 25, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            padding: 2.5rem;
-        }
-
-        .dev-avatar {
-            width: 96px;
-            height: 96px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #ff9800, #e65100);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 2rem;
-            color: #fff;
-            flex-shrink: 0;
-        }
-
-        .dev-badge {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #d0d0d5;
-            font-size: 0.8rem;
-            padding: 0.3rem 0.85rem;
-            border-radius: 999px;
-            display: inline-block;
-            margin: 0.2rem;
-        }
-
-        .dev-link {
-            color: #f8f9fa;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            transition: color 0.2s ease;
-        }
-
-        .dev-link:hover {
-            color: #ffc107;
-        }
-
-        /* Footer */
-        footer {
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 2.5rem 1rem;
-            text-align: center;
-            color: #7a7a82;
-            font-size: 0.85rem;
-        }
-
-        footer a {
-            color: #a0a0aa;
-        }
-    </style>
+    <partial name="_Head" />
+    <meta name="description" content="PendurAi: sistema de caixa (PDV) e gestão para adegas e mercados de bebidas. Estoque, turno de caixa, fiado e comandas num só lugar. Teste grátis por 7 dias." />
+    <meta property="og:title" content="PendurAi · Caixa e gestão para adegas" />
+    <meta property="og:description" content="Estoque, turno de caixa, fiado e comandas num só sistema. Teste grátis por 7 dias." />
+    <meta property="og:image" content="https://pendurai.vinnisantos.com.br/img/produto-painel.png" />
+    <title>PendurAi · Caixa e gestão para adegas e mercados</title>
+    <link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
+    <script>document.documentElement.classList.add("js");</script>
 </head>
-<body>
+<body class="lp">
 
-    <nav class="navbar navbar-expand-lg navbar-institucional fixed-top py-3">
-        <div class="container">
-            <a class="navbar-brand navbar-brand-custom" href="#inicio">Pendur<span>Ai</span></a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navInstitucional" style="border-color: rgba(255,255,255,.2);">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navInstitucional">
-                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
-                    <li class="nav-item"><a class="nav-link" href="#recursos">Recursos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#tecnologia">Como Funciona</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#planos">Planos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#desenvolvedor">Desenvolvedor</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#contato">Contato</a></li>
-                    <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
-                        <a asp-page="/Auth/Login" class="btn btn-nav-entrar btn-sm">Entrar</a>
-                    </li>
-                </ul>
+    <header class="lp-nav">
+        <div class="lp-container lp-nav-inner">
+            <a href="#inicio" class="brand-lockup"><span class="app-brand-mark" aria-hidden="true">P</span> PendurAi</a>
+            <nav class="lp-nav-links" aria-label="Seções">
+                <a href="#recursos">Recursos</a>
+                <a href="#tecnologia">Como funciona</a>
+                <a href="#planos">Planos</a>
+                <a href="#desenvolvedor">Quem fez</a>
+                <a href="#contato">Contato</a>
+            </nav>
+            <div class="lp-nav-actions">
+                <button type="button" class="icon-btn" data-pa-theme-toggle aria-label="Alternar tema"><i data-pa-theme-icon class="bi bi-sun"></i></button>
+                <a asp-page="/Auth/Login" class="btn btn-sm btn-outline-secondary">Entrar</a>
             </div>
         </div>
-    </nav>
+    </header>
 
-    <div class="container text-center hero-section" id="inicio">
-        <h1 class="brand-title">Gestão Inteligente para sua Adega</h1>
-        <p class="lead mt-3 text-muted-custom mx-auto">
-            O PendurAi é o sistema completo (PDV + ERP) para controlar estoque, caixa e fiado sem dor de
-            cabeça — feito para o giro rápido do balcão e a organização que o dono do negócio precisa.
-        </p>
-
-        <div class="d-flex justify-content-center flex-wrap gap-3 mt-5">
-            <a asp-page="/Auth/Login" class="btn btn-access btn-lg d-flex align-items-center">
-                Acessar Sistema
-            </a>
-
-            <a href="#planos" class="btn btn-planos btn-lg">Ver Planos</a>
-
-            <!-- Segurança Cibernética: rel="noopener noreferrer" inserido para mitigar Reverse Tabnabbing -->
-            <a href="https://wa.me/5515981636193" target="_blank" rel="noopener noreferrer" class="btn btn-contact btn-lg">
-                <i class="bi bi-whatsapp me-2"></i>Fale com a Equipe
-            </a>
-        </div>
-    </div>
-
-    <hr class="custom-hr" />
-
-    <section class="container px-3" id="recursos">
-        <div class="text-center mb-5">
-            <div class="section-eyebrow">O que o sistema faz</div>
-            <h2 class="section-title">Tudo que a sua loja precisa, em um só lugar</h2>
-            <p class="text-muted-custom mx-auto">Do balcão ao fechamento do caixa, cada funcionalidade foi pensada pro dia a dia de uma adega ou mercado de bebidas.</p>
-        </div>
-        <div class="row text-start justify-content-center">
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="feature-card">
-                    <i class="bi bi-box-seam feature-icon"></i>
-                    <h3>Estoque Real</h3>
-                    <p>Controle inteligente com fator de conversão. Vendeu a caixa? O sistema faz a quebra e baixa as latas automaticamente no banco, com histórico completo de entrada e ajuste manual.</p>
+    <main>
+        <section class="lp-hero" id="inicio">
+            <div class="lp-container lp-hero-grid">
+                <div class="lp-hero-copy">
+                    <h1>Caixa, estoque e fiado <em>num só lugar.</em></h1>
+                    <p class="lp-hero-sub">O sistema da sua adega: venda rápida no balcão, turno conferido no fechamento e o fiado de cada cliente em dia.</p>
+                    <div class="lp-hero-ctas">
+                        <a asp-page="/CadastroLoja" asp-route-plano="pro" class="btn btn-warning">Testar grátis por 7 dias</a>
+                        <a href="#planos" class="btn btn-outline-secondary">Ver planos</a>
+                    </div>
+                </div>
+                <div class="lp-shot">
+                    <img class="only-dark" src="~/img/produto-pdv-dark.png" width="1440" height="640" alt="Tela da frente de caixa do PendurAi com dois produtos no carrinho e total de R$ 66,78" fetchpriority="high" />
+                    <img class="only-light" src="~/img/produto-pdv-light.png" width="1440" height="640" alt="Tela da frente de caixa do PendurAi com dois produtos no carrinho e total de R$ 66,78" loading="lazy" />
                 </div>
             </div>
+        </section>
 
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="feature-card">
-                    <i class="bi bi-eye-slash feature-icon"></i>
-                    <h3>Caixa Cego</h3>
-                    <p>Segurança total no fechamento do turno. O operador conta o dinheiro da gaveta sem ver o saldo esperado pelo sistema, evitando fraudes e conferindo cada sangria/suprimento.</p>
-                </div>
-            </div>
+        <section class="lp-section" id="recursos">
+            <div class="lp-container">
+                <h2 class="reveal">Feito para o giro do balcão e para o fechamento do mês.</h2>
+                <p class="lp-lead reveal">Cada parte do sistema resolve uma rotina real de adega ou mercado de bebidas.</p>
 
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="feature-card">
-                    <i class="bi bi-people feature-icon"></i>
-                    <h3>Gestão de Fiado</h3>
-                    <p>Controle o limite de crédito por cliente, histórico detalhado de compras pendentes e faça a baixa parcial ou total de pagamentos de forma fácil.</p>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="feature-card">
-                    <i class="bi bi-receipt feature-icon"></i>
-                    <h3>Comandas</h3>
-                    <p>Abertura por mesa/cliente, adição de itens ao longo do atendimento e fechamento direto em uma venda — sem planilha, sem papel avulso.</p>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="feature-card">
-                    <i class="bi bi-graph-up-arrow feature-icon"></i>
-                    <h3>Relatórios &amp; Exportação</h3>
-                    <p>Faturamento do dia, semana e mês, produtos mais vendidos e extrato de vendas — exportáveis em Excel, PDF, XML ou CSV com um clique.</p>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="feature-card">
-                    <i class="bi bi-building feature-icon"></i>
-                    <h3>Multi-loja (SaaS)</h3>
-                    <p>Cada loja com seus próprios dados, usuários e licença — administrador e vendedor com permissões diferentes, tudo isolado por loja no mesmo sistema.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <hr class="custom-hr" />
-
-    <section class="container px-3" id="tecnologia">
-        <div class="text-center mb-5">
-            <div class="section-eyebrow">Como foi desenvolvido</div>
-            <h2 class="section-title">Construído com engenharia de verdade</h2>
-            <p class="text-muted-custom mx-auto">
-                O PendurAi não é uma planilha disfarçada de sistema: é uma aplicação web real, com arquitetura em
-                camadas, banco de dados transacional e isolamento de dados por loja desde o primeiro dia.
-            </p>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="tech-card">
-                    <i class="bi bi-layers-half"></i>
-                    <h4>Arquitetura em camadas</h4>
-                    <p>ASP.NET Core (Razor Pages) em C# .NET, separado em Core, Application, Infrastructure e Pages — regra de negócio isolada de banco de dados e de interface.</p>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="tech-card">
-                    <i class="bi bi-database-check"></i>
-                    <h4>Transações atômicas</h4>
-                    <p>Cada venda decrementa estoque, grava o pedido e atualiza o caixa (ou o fiado) numa única transação via Dapper/Npgsql — os números do caixa nunca destoam da conta do cliente.</p>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="tech-card">
-                    <i class="bi bi-shield-lock"></i>
-                    <h4>Multi-tenant real</h4>
-                    <p>Cada loja tem seus dados isolados por identificador próprio (tenant_id) no PostgreSQL (hospedado no Supabase), com licenciamento que bloqueia acesso suspenso, cancelado ou expirado automaticamente.</p>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="tech-card">
-                    <i class="bi bi-credit-card"></i>
-                    <h4>Cobrança automatizada</h4>
-                    <p>Assinatura e cobrança recorrente integradas ao Asaas — o status da licença é atualizado sozinho conforme o pagamento é confirmado, vence ou é cancelado.</p>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="tech-card">
-                    <i class="bi bi-printer"></i>
-                    <h4>Impressão térmica</h4>
-                    <p>Emissão de recibo via ESC/POS direto na impressora térmica do balcão, com reimpressão manual a qualquer momento pelo extrato de vendas.</p>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="tech-card">
-                    <i class="bi bi-hdd-network"></i>
-                    <h4>Hospedado em produção</h4>
-                    <p>Rodando em nuvem (AWS) com domínio e certificado HTTPS próprios — não é um protótipo local, é um sistema em operação real.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <hr class="custom-hr" />
-
-    <section class="container px-3" id="planos">
-        <div class="text-center mb-5">
-            <div class="section-eyebrow">Planos</div>
-            <h2 class="section-title">Um plano pro tamanho da sua loja</h2>
-            <p class="text-muted-custom mx-auto">7 dias grátis em qualquer plano, sem cartão de crédito. Cancele quando quiser.</p>
-        </div>
-        <div class="row justify-content-center align-items-stretch">
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="plano-card">
-                    <div class="plano-nome">Start</div>
-                    <div class="plano-preco">R$ 119<small>/mês</small></div>
-                    <ul>
-                        <li><i class="bi bi-check-circle-fill"></i>PDV completo (caixa e comandas)</li>
-                        <li><i class="bi bi-check-circle-fill"></i>Controle de estoque e fiado</li>
-                        <li><i class="bi bi-check-circle-fill"></i>1 loja</li>
-                    </ul>
-                    <a asp-page="/CadastroLoja" asp-route-plano="start" class="btn btn-contact w-100 mt-2">Testar grátis por 7 dias</a>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="plano-card destaque">
-                    <span class="plano-badge">Mais escolhido</span>
-                    <div class="plano-nome">Pro</div>
-                    <div class="plano-preco">R$ 199<small>/mês</small></div>
-                    <ul>
-                        <li><i class="bi bi-check-circle-fill"></i>Tudo do Start</li>
-                        <li><i class="bi bi-check-circle-fill"></i>Relatórios e exportação (Excel/PDF/CSV)</li>
-                        <li><i class="bi bi-check-circle-fill"></i>Múltiplos usuários (admin + vendedor)</li>
-                    </ul>
-                    <a asp-page="/CadastroLoja" asp-route-plano="pro" class="btn btn-access w-100 mt-2">Testar grátis por 7 dias</a>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="plano-card">
-                    <div class="plano-nome">Enterprise</div>
-                    <div class="plano-preco">R$ 349<small>/mês</small></div>
-                    <ul>
-                        <li><i class="bi bi-check-circle-fill"></i>Tudo do Pro</li>
-                        <li><i class="bi bi-check-circle-fill"></i>Múltiplas lojas / redes</li>
-                        <li><i class="bi bi-check-circle-fill"></i>Suporte prioritário</li>
-                    </ul>
-                    <a asp-page="/CadastroLoja" asp-route-plano="enterprise" class="btn btn-contact w-100 mt-2">Testar grátis por 7 dias</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <hr class="custom-hr" />
-
-    <section class="container px-3" id="desenvolvedor">
-        <div class="text-center mb-5">
-            <div class="section-eyebrow">Quem construiu</div>
-            <h2 class="section-title">Sobre o desenvolvedor</h2>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-lg-9">
-                <div class="dev-card d-flex flex-column flex-md-row gap-4">
-                    <div class="dev-avatar">VS</div>
-                    <div>
-                        <h3 class="mb-1" style="font-weight:700;">Vinnicius Gabriel Matos dos Santos</h3>
-                        <p class="mb-3" style="color:#ffc107; font-weight:600; font-size:0.95rem;">Desenvolvedor Full Stack Jr. — Sorocaba/SP</p>
-                        <p class="text-muted-custom" style="max-width:100%; margin:0 0 1rem 0;">
-                            Estudante de Análise e Desenvolvimento de Sistemas (UNIP), com base sólida em lógica de
-                            programação, arquitetura de sistemas e foco em backend. Antes de entrar pra tecnologia,
-                            passou por ambientes industriais e comerciais exigentes — o que trouxe uma visão prática
-                            de processos de negócio, logística e resolução de problemas que aparece em cada decisão
-                            de arquitetura deste sistema. O PendurAi foi projetado e construído do zero: banco de
-                            dados, backend, segurança e deploy em produção.
-                        </p>
-                        <div class="mb-3">
-                            <span class="dev-badge">C# / .NET</span>
-                            <span class="dev-badge">ASP.NET Core</span>
-                            <span class="dev-badge">PostgreSQL</span>
-                            <span class="dev-badge">Supabase</span>
-                            <span class="dev-badge">Docker</span>
-                            <span class="dev-badge">Git / GitHub</span>
-                            <span class="dev-badge">AWS</span>
+                <div class="lp-bento">
+                    <article class="lp-cell span-2 is-media reveal">
+                        <i class="bi bi-box-seam lp-ico" aria-hidden="true"></i>
+                        <h3>Estoque que entende caixa e unidade</h3>
+                        <p>Vendeu um fardo com 12? O sistema baixa as 12 latas sozinho e guarda o histórico de cada entrada, venda e ajuste.</p>
+                        <div class="lp-cell-img">
+                            <img class="only-dark" src="~/img/produto-estoque-dark.png" width="1076" height="324" alt="Lista de produtos com preço e estoque atual" loading="lazy" />
+                            <img class="only-light" src="~/img/produto-estoque-light.png" width="1076" height="324" alt="Lista de produtos com preço e estoque atual" loading="lazy" />
                         </div>
-                        <div class="d-flex flex-wrap gap-3">
-                            <a href="https://vinnisantos.com.br" target="_blank" rel="noopener noreferrer" class="dev-link"><i class="bi bi-globe2"></i>vinnisantos.com.br</a>
-                            <a href="https://github.com/vinnisntos" target="_blank" rel="noopener noreferrer" class="dev-link"><i class="bi bi-github"></i>GitHub</a>
-                            <a href="https://linkedin.com/in/vinnisantos" target="_blank" rel="noopener noreferrer" class="dev-link"><i class="bi bi-linkedin"></i>LinkedIn</a>
+                    </article>
+                    <article class="lp-cell is-accent reveal">
+                        <i class="bi bi-safe lp-ico" aria-hidden="true"></i>
+                        <h3>Caixa cego</h3>
+                        <p>O operador conta a gaveta sem ver o valor esperado. Sangrias e suprimentos ficam registrados, e a diferença aparece no fechamento.</p>
+                    </article>
+                    <article class="lp-cell reveal">
+                        <i class="bi bi-journal-bookmark lp-ico" aria-hidden="true"></i>
+                        <h3>Fiado com limite</h3>
+                        <p>Limite de crédito por cliente, saldo devedor atualizado a cada compra e baixa parcial ou total do pagamento.</p>
+                    </article>
+                    <article class="lp-cell reveal">
+                        <i class="bi bi-receipt lp-ico" aria-hidden="true"></i>
+                        <h3>Comandas</h3>
+                        <p>Abra por mesa ou cliente, lance os itens durante o atendimento e feche direto em venda. Sem papel avulso.</p>
+                    </article>
+                    <article class="lp-cell reveal">
+                        <i class="bi bi-bar-chart-line lp-ico" aria-hidden="true"></i>
+                        <h3>Relatórios</h3>
+                        <p>Faturamento do dia, da semana e do mês, mais vendidos e extrato de vendas. Exporte em Excel, PDF ou CSV.</p>
+                    </article>
+                    <article class="lp-cell span-3 is-strip reveal">
+                        <div>
+                            <h3><i class="bi bi-people me-2 text-warning" aria-hidden="true"></i>Equipe com permissões separadas</h3>
+                            <p>Vendedor opera o caixa. Administrador vê custos, relatórios e cadastra a equipe. Os dados de cada loja ficam isolados.</p>
+                        </div>
+                        <a asp-page="/CadastroLoja" asp-route-plano="pro" class="btn btn-outline-secondary">Testar grátis por 7 dias</a>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="lp-section" id="tecnologia">
+            <div class="lp-container lp-split">
+                <div class="reveal">
+                    <h2>Os números do caixa batem com a conta do cliente.</h2>
+                    <p class="lp-lead">Uma aplicação web de verdade, com banco transacional e dados separados por loja desde o primeiro dia.</p>
+                </div>
+                <div class="lp-facts">
+                    <div class="lp-fact reveal">
+                        <i class="bi bi-database-check" aria-hidden="true"></i>
+                        <h3>Venda numa única operação</h3>
+                        <p>Estoque, pedido e caixa (ou fiado) são gravados juntos. Se uma parte falha, nada fica pela metade.</p>
+                    </div>
+                    <div class="lp-fact reveal">
+                        <i class="bi bi-shield-lock" aria-hidden="true"></i>
+                        <h3>Cada loja isolada</h3>
+                        <p>Toda consulta é filtrada pela loja do usuário logado. Uma loja nunca enxerga os dados de outra.</p>
+                    </div>
+                    <div class="lp-fact reveal">
+                        <i class="bi bi-credit-card" aria-hidden="true"></i>
+                        <h3>Assinatura automática</h3>
+                        <p>Cobrança recorrente pelo Asaas. A licença é liberada ou suspensa conforme o pagamento é confirmado.</p>
+                    </div>
+                    <div class="lp-fact reveal">
+                        <i class="bi bi-printer" aria-hidden="true"></i>
+                        <h3>Recibo na térmica</h3>
+                        <p>Impressão em impressora térmica ESC/POS, com reimpressão pelo extrato de vendas.</p>
+                    </div>
+                    <div class="lp-fact reveal">
+                        <i class="bi bi-layers" aria-hidden="true"></i>
+                        <h3>Regras de negócio no servidor</h3>
+                        <p>ASP.NET Core em camadas. Preço, limite de crédito e estoque são validados no servidor, nunca só na tela.</p>
+                    </div>
+                    <div class="lp-fact reveal">
+                        <i class="bi bi-cloud-check" aria-hidden="true"></i>
+                        <h3>No ar, com HTTPS</h3>
+                        <p>Hospedado em nuvem com domínio e certificado próprios. Acesse do computador do caixa ou do celular.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="lp-section" id="planos">
+            <div class="lp-container">
+                <div class="lp-eyebrow reveal">7 dias grátis em qualquer plano</div>
+                <h2 class="reveal">Um plano para o tamanho da sua loja.</h2>
+                <p class="lp-lead reveal">Sem cartão de crédito para começar. Cancele quando quiser.</p>
+
+                <div class="lp-plans">
+                    <div class="lp-plan reveal">
+                        <div class="lp-plan-head"><span class="lp-plan-name">Start</span></div>
+                        <div class="lp-price">R$ 119<small>/mês</small></div>
+                        <ul>
+                            <li><i class="bi bi-check2"></i>Frente de caixa e comandas</li>
+                            <li><i class="bi bi-check2"></i>Estoque e fiado</li>
+                            <li><i class="bi bi-check2"></i>1 loja</li>
+                        </ul>
+                        <a asp-page="/CadastroLoja" asp-route-plano="start" class="btn btn-outline-secondary w-100">Escolher Start</a>
+                    </div>
+                    <div class="lp-plan is-featured reveal">
+                        <div class="lp-plan-head"><span class="lp-plan-name">Pro</span><span class="badge bg-warning">Mais escolhido</span></div>
+                        <div class="lp-price">R$ 199<small>/mês</small></div>
+                        <ul>
+                            <li><i class="bi bi-check2"></i>Tudo do Start</li>
+                            <li><i class="bi bi-check2"></i>Relatórios e exportação (Excel, PDF, CSV)</li>
+                            <li><i class="bi bi-check2"></i>Vários usuários (administrador e vendedor)</li>
+                        </ul>
+                        <a asp-page="/CadastroLoja" asp-route-plano="pro" class="btn btn-warning w-100">Escolher Pro</a>
+                    </div>
+                    <div class="lp-plan reveal">
+                        <div class="lp-plan-head"><span class="lp-plan-name">Enterprise</span></div>
+                        <div class="lp-price">R$ 349<small>/mês</small></div>
+                        <ul>
+                            <li><i class="bi bi-check2"></i>Tudo do Pro</li>
+                            <li><i class="bi bi-check2"></i>Várias lojas ou redes</li>
+                            <li><i class="bi bi-check2"></i>Suporte prioritário</li>
+                        </ul>
+                        <a asp-page="/CadastroLoja" asp-route-plano="enterprise" class="btn btn-outline-secondary w-100">Escolher Enterprise</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="lp-section" id="desenvolvedor">
+            <div class="lp-container">
+                <div class="lp-dev reveal">
+                    <div class="lp-avatar" aria-hidden="true">VS</div>
+                    <div>
+                        <h2 class="mb-1" style="font-size: clamp(1.4rem, 2.4vw, 1.8rem);">Vinnicius Gabriel Matos dos Santos</h2>
+                        <p class="text-warning fw-medium mb-3">Desenvolvedor full stack, Sorocaba/SP</p>
+                        <p class="lp-lead">Estudante de Análise e Desenvolvimento de Sistemas (UNIP), com foco em backend e arquitetura. Antes da tecnologia, trabalhou em ambientes industriais e comerciais, de onde vem a visão prática de processo e logística presente no sistema. O PendurAi foi construído do zero: banco de dados, backend, segurança e deploy.</p>
+                        <div class="lp-tags">
+                            <span>C# / .NET</span><span>ASP.NET Core</span><span>PostgreSQL</span><span>Supabase</span><span>Docker</span><span>Git</span><span>Linux</span>
+                        </div>
+                        <div class="lp-links">
+                            <a href="https://vinnisantos.com.br" target="_blank" rel="noopener noreferrer"><i class="bi bi-globe2"></i>vinnisantos.com.br</a>
+                            <a href="https://github.com/vinnisntos" target="_blank" rel="noopener noreferrer"><i class="bi bi-github"></i>GitHub</a>
+                            <a href="https://linkedin.com/in/vinnisantos" target="_blank" rel="noopener noreferrer"><i class="bi bi-linkedin"></i>LinkedIn</a>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <footer id="contato" class="mt-5">
-        <div class="container">
-            <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 mb-3">
-                <a href="https://wa.me/5515981636193" target="_blank" rel="noopener noreferrer" class="dev-link"><i class="bi bi-whatsapp"></i>(15) 98163-6193</a>
-                <a href="https://github.com/vinnisntos" target="_blank" rel="noopener noreferrer" class="dev-link"><i class="bi bi-github"></i>github.com/vinnisntos</a>
-                <a href="https://linkedin.com/in/vinnisantos" target="_blank" rel="noopener noreferrer" class="dev-link"><i class="bi bi-linkedin"></i>linkedin.com/in/vinnisantos</a>
+    <footer class="lp-footer" id="contato">
+        <div class="lp-container lp-footer-grid">
+            <div>
+                <a href="#inicio" class="brand-lockup mb-3"><span class="app-brand-mark" aria-hidden="true">P</span> PendurAi</a>
+                <p class="mt-3">&copy; @DateTime.UtcNow.Year PendurAi. Desenvolvido por Vinnicius Santos.</p>
             </div>
-            <p class="mb-0">&copy; @DateTime.Now.Year PendurAi — desenvolvido por Vinnicius Santos. Todos os direitos reservados.</p>
+            <div class="lp-links">
+                <a href="https://wa.me/5515981636193" target="_blank" rel="noopener noreferrer"><i class="bi bi-whatsapp"></i>Falar no WhatsApp</a>
+                <a href="https://github.com/vinnisntos" target="_blank" rel="noopener noreferrer"><i class="bi bi-github"></i>GitHub</a>
+                <a href="https://linkedin.com/in/vinnisantos" target="_blank" rel="noopener noreferrer"><i class="bi bi-linkedin"></i>LinkedIn</a>
+            </div>
         </div>
     </footer>
 
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/pendurai.js" asp-append-version="true"></script>
+    <script>
+        // Revela blocos ao entrar na tela (CSS já ignora isso com prefers-reduced-motion).
+        (function () {
+            var itens = document.querySelectorAll(".reveal");
+            if (!("IntersectionObserver" in window)) { itens.forEach(function (el) { el.classList.add("is-in"); }); return; }
+            var obs = new IntersectionObserver(function (entradas) {
+                entradas.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("is-in"); obs.unobserve(e.target); } });
+            }, { rootMargin: "0px 0px -10% 0px" });
+            itens.forEach(function (el) { obs.observe(el); });
+        })();
+    </script>
 </body>
 </html>
