@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using EmporioGege.Application.DTOs;
+using EmporioGege.Core.Common;
 
 namespace EmporioGege.Infrastructure.Impressao
 {
@@ -24,7 +25,7 @@ namespace EmporioGege.Infrastructure.Impressao
             Negrito(buffer, false);
             Centralizar(buffer, false);
 
-            EscreverLinha(buffer, recibo.DataVenda.ToLocalTime().ToString("dd/MM/yyyy HH:mm"));
+            EscreverLinha(buffer, FusoHorarioBrasil.ParaLocal(recibo.DataVenda).ToString("dd/MM/yyyy HH:mm"));
             if (recibo.NumeroComanda is { } numeroComanda)
                 EscreverLinha(buffer, $"Comanda: {numeroComanda}");
 

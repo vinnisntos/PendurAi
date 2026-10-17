@@ -15,6 +15,11 @@ namespace EmporioGege.Core.Common
 
         public static DateOnly HojeLocal() => DateOnly.FromDateTime(AgoraLocal());
 
+        /// <summary>Converte um instante do banco (UTC) pro horário da loja. Substitui ToLocalTime(),
+        /// que depende do fuso do servidor (UTC na VPS) e mostrava tudo 3h adiantado.</summary>
+        public static DateTime ParaLocal(DateTime instante) =>
+            (instante.Kind == DateTimeKind.Local ? instante.ToUniversalTime() : DateTime.SpecifyKind(instante, DateTimeKind.Utc)) + Offset;
+
         /// <summary>Início (00:00) de um dia local, convertido pra UTC.</summary>
         public static DateTime InicioDoDiaLocalEmUtc(DateOnly diaLocal) =>
             DateTime.SpecifyKind(diaLocal.ToDateTime(TimeOnly.MinValue) - Offset, DateTimeKind.Utc);

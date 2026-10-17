@@ -84,3 +84,12 @@ public class HmacSignatureValidatorTests
     public void Recusa_assinatura_de_outro_segredo() =>
         Assert.False(HmacSignatureValidator.IsValid(Corpo, Assinar("outro"), "s3gredo"));
 }
+
+public class ParaLocalTests
+{
+    [Theory]
+    [InlineData(DateTimeKind.Utc)]
+    [InlineData(DateTimeKind.Unspecified)] // timestamp sem fuso vindo do Npgsql
+    public void Converte_utc_para_horario_de_brasilia(DateTimeKind kind) =>
+        Assert.Equal(new DateTime(2026, 7, 14, 23, 37, 0), FusoHorarioBrasil.ParaLocal(new DateTime(2026, 7, 15, 2, 37, 0, kind)));
+}

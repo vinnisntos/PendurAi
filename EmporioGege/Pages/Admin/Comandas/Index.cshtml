@@ -52,8 +52,8 @@
                     <tr data-comanda-id="@c.Id">
                         <td class="text-body-emphasis fw-medium">@c.NumeroComanda</td>
                         <td><span class="badge @badgeClasse">@c.Status</span></td>
-                        <td class="text-muted small">@c.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                        <td class="text-muted small">@c.AtualizadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="text-muted small">@FusoHorarioBrasil.ParaLocal(c.CreatedAt).ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="text-muted small">@FusoHorarioBrasil.ParaLocal(c.AtualizadoEm).ToString("dd/MM/yyyy HH:mm")</td>
                         <td class="text-center">@c.QuantidadeItens</td>
                         <td class="text-end">@c.Total.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</td>
                         <td class="text-end">

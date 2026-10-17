@@ -70,7 +70,7 @@ namespace EmporioGege.Infrastructure.Relatorios
                     pagina.Footer().AlignCenter().Text(texto =>
                     {
                         texto.Span("Gerado em ");
-                        texto.Span(DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
+                        texto.Span(EmporioGege.Core.Common.FusoHorarioBrasil.AgoraLocal().ToString("dd/MM/yyyy HH:mm"));
                     });
                 });
             });
