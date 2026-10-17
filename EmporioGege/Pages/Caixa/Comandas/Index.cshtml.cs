@@ -238,6 +238,14 @@ namespace EmporioGege.Pages.Caixa.Comandas
                 return new JsonResult(new { sucesso = false, mensagem = ex.Message, clienteId = ex.ClienteId })
                 { StatusCode = StatusCodes.Status409Conflict };
             }
+            catch (TurnoInvalidoException ex)
+            {
+                return new JsonResult(new { sucesso = false, mensagem = ex.Message }) { StatusCode = StatusCodes.Status409Conflict };
+            }
+            catch (ArgumentException ex)
+            {
+                return new JsonResult(new { sucesso = false, mensagem = ex.Message.Split(" (Parameter")[0] }) { StatusCode = StatusCodes.Status400BadRequest };
+            }
         }
 
         // Impressão nunca bloqueia o fechamento: já está tudo gravado no banco antes daqui.

@@ -12,10 +12,17 @@ namespace EmporioGege.Application.Services
     {
         private const int MaxTentativas = 3;
 
+        public static readonly IReadOnlySet<string> MetodosPagamento = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            { "DINHEIRO", "DEBITO", "CREDITO", "PIX", "FIADO" };
+
         public async Task<ResultadoVendaDto> FinalizarVendaAsync(FinalizarVendaDto dto, CancellationToken ct = default)
         {
             if (dto.Itens.Count == 0)
                 throw new ArgumentException("A venda precisa ter ao menos um item.", nameof(dto));
+
+            // Qualquer texto era gravado como forma de pagamento; só pedido do Zé Delivery chega sem ela.
+            if (dto.MetodoPagamento is null ? dto.TipoOrigem != TipoOrigemVenda.ZeDelivery : !MetodosPagamento.Contains(dto.MetodoPagamento))
+                throw new ArgumentException("Forma de pagamento inválida.", nameof(dto));
 
             var tenantId = tenantProvider.RequireTenantId();
 
@@ -27,6 +34,32 @@ namespace EmporioGege.Application.Services
                 try
                 {
                     await connectionFactory.SetTenantContextAsync(connection, transaction, tenantId, ct);
+
+                    // FOR SHARE bloqueia contra o FOR UPDATE do fechamento: sem isso uma venda que
+                    // confirmava logo depois do fechamento entrava num turno FECHADO e o saldo não batia.
+                    if (dto.TurnoId is { } turnoVenda)
+                    {
+                        var statusTurno = await connection.QuerySingleOrDefaultAsync<string?>(new CommandDefinition(
+                            "SELECT status FROM caixa_turnos WHERE id = @TurnoId AND tenant_id = @TenantId FOR SHARE",
+                            new { TurnoId = turnoVenda, TenantId = tenantId }, transaction, cancellationToken: ct));
+                        if (statusTurno != "ABERTO")
+                            throw new TurnoInvalidoException("O turno de caixa foi fechado. Abra um novo turno para continuar vendendo.");
+                    }
+
+                    // Trava a comanda antes de baixar: um item lançado em outro terminal entre a leitura
+                    // dos itens e este ponto ficaria numa comanda FECHADA sem ser cobrado.
+                    if (dto.ComandaId is { } comandaVenda)
+                    {
+                        var atual = await connection.QuerySingleAsync<(long Linhas, long Quantidade)>(new CommandDefinition(
+                            """
+                            SELECT (SELECT count(*) FROM comandas_itens WHERE comanda_id = c.id AND tenant_id = c.tenant_id),
+                                   (SELECT coalesce(sum(quantidade), 0) FROM comandas_itens WHERE comanda_id = c.id AND tenant_id = c.tenant_id)
+                            FROM comandas c WHERE c.id = @ComandaId AND c.tenant_id = @TenantId FOR UPDATE
+                            """,
+                            new { ComandaId = comandaVenda, TenantId = tenantId }, transaction, cancellationToken: ct));
+                        if (atual.Linhas != dto.Itens.Count || atual.Quantidade != dto.Itens.Sum(i => i.Quantidade))
+                            throw new ComandaInvalidaException("A comanda foi alterada enquanto era fechada. Confira os itens e feche de novo.");
+                    }
 
                     // Baixa todos os itens na MESMA transação: se um item não tiver estoque,
                     // EstoqueInsuficienteException derruba a transação inteira — sem baixa
