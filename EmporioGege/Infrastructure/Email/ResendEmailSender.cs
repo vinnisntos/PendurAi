@@ -25,7 +25,7 @@ namespace EmporioGege.Infrastructure.Email
                 from = remetente,
                 to = new[] { destinatarioEmail },
                 subject = assunto,
-                html = corpoHtml
+                html = EmailLayout.Envolver(assunto, corpoHtml, opcoes.Value.LogoUrl)
             };
 
             try

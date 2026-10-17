@@ -10,5 +10,8 @@ namespace EmporioGege.Infrastructure.Email
         public string RemetenteEmail { get; set; } = "pendurai@noreply.vinnisantos.com.br";
 
         public string RemetenteNome { get; set; } = "PendurAi";
+
+        // PNG do símbolo usado no cabeçalho dos e-mails (precisa ser URL pública absoluta).
+        public string LogoUrl { get; set; } = "https://pendurai.vinnisantos.com.br/img/brand/icon-192.png";
     }
 }

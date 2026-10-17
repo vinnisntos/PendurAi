@@ -42,7 +42,7 @@ namespace EmporioGege.Application.Services
 
             var assunto = "PendurAi - finalize sua assinatura";
             var botaoOuAviso = loja.AsaasInvoiceUrl is { Length: > 0 }
-                ? $"""<p><a href="{H(loja.AsaasInvoiceUrl)}" style="display:inline-block;background:#ff9800;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Pagar agora</a></p>"""
+                ? EmporioGege.Infrastructure.Email.EmailLayout.Botao(H(loja.AsaasInvoiceUrl), "Pagar agora")
                 : "<p>Estamos finalizando a geração da sua cobrança - você recebe o link em instantes, ou pode acessar o painel e clicar em \"Assinar agora\" novamente.</p>";
 
             var corpo = $"""

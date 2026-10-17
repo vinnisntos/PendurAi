@@ -98,7 +98,11 @@ namespace EmporioGege.Application.Services
                 var key = configuration["Supabase:Key"]!;
                 var clienteIsolado = new Supabase.Client(url, key, new Supabase.SupabaseOptions { AutoConnectRealtime = false });
 
-                var sessao = await clienteIsolado.Auth.SignUp(dto.EmailDono, dto.Senha);
+                // Depois do clique no link de confirmação o Supabase manda pra cá (a URL precisa estar
+                // em Authentication > URL Configuration > Redirect URLs no painel, senão ele cai na Site URL).
+                var urlPublica = (configuration["App:UrlPublica"] ?? "https://pendurai.vinnisantos.com.br").TrimEnd('/');
+                var sessao = await clienteIsolado.Auth.SignUp(dto.EmailDono, dto.Senha,
+                    new Supabase.Gotrue.SignUpOptions { RedirectTo = $"{urlPublica}/Auth/EmailConfirmado" });
                 if (sessao?.User?.Id is null)
                 {
                     await RemoverTenantOrfaoAsync(tenantId);
