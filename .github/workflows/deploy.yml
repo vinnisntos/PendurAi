@@ -39,4 +39,4 @@ jobs:
           tar -czf - -C out . | ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes ubuntu@146.235.38.173
 
       - name: Verificar site
-        run: curl -fsS -o /dev/null --retry 5 --retry-delay 3 https://pendurai.vinnisantos.com.br/
+        run: curl -fsS -o /dev/null --retry 5 --retry-delay 3 https://pendurai.vinnisantos.com.br/healthz

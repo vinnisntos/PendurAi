@@ -16,8 +16,18 @@ namespace EmporioGege.Infrastructure.Data
     // já vão funcionar sem mudar o código dos serviços.
     public class NpgsqlConnectionFactory(IConfiguration configuration) : IDbConnectionFactory
     {
-        private readonly string _connectionString = configuration.GetConnectionString("SupabasePostgres")
-            ?? throw new InvalidOperationException("ConnectionStrings:SupabasePostgres não configurada.");
+        private readonly string _connectionString = LimitarPool(configuration.GetConnectionString("SupabasePostgres")
+            ?? throw new InvalidOperationException("ConnectionStrings:SupabasePostgres não configurada."));
+
+        // O pooler do Supabase em modo sessão aceita ~15 conexões; o padrão do Npgsql (100) estourava
+        // isso sob carga e derrubava todas as lojas com 500. Só aplica se a string não definir um teto.
+        private static string LimitarPool(string connectionString)
+        {
+            var builder = new NpgsqlConnectionStringBuilder(connectionString);
+            if (!connectionString.Contains("Pool Size", StringComparison.OrdinalIgnoreCase))
+                builder.MaxPoolSize = 10;
+            return builder.ConnectionString;
+        }
 
         public async Task<DbConnection> CreateOpenConnectionAsync(CancellationToken ct = default)
         {

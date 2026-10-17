@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -17,6 +19,7 @@ using EmporioGege.Infrastructure.Faturamento;
 using EmporioGege.Infrastructure.Fiscal;
 using EmporioGege.Infrastructure.Impressao;
 using EmporioGege.Infrastructure.Relatorios;
+using EmporioGege.Infrastructure.Saude;
 using EmporioGege.Infrastructure.Tenancy;
 using EmporioGege.Infrastructure.Webhooks;
 
@@ -33,7 +36,7 @@ QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 var url = builder.Configuration["Supabase:Url"]!;
 var key = builder.Configuration["Supabase:Key"]!;
 
-builder.Services.AddScoped<Client>(_ => new Client(url, key, new SupabaseOptions { AutoConnectRealtime = true }));
+builder.Services.AddScoped<Client>(_ => new Client(url, key, new SupabaseOptions { AutoConnectRealtime = false }));
 
 // 1.1 Acesso direto ao Postgres (Npgsql/Dapper) para operações transacionais
 // (ledger do caixa, baixa de estoque) que o cliente REST do Supabase não cobre.
@@ -184,7 +187,24 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/Auth/Login";         // Se tentar acessar algo trancado deslogado, vai para cá
         options.AccessDeniedPath = "/Auth/Login";   // Se tentar acessar algo que não tem permissão, volta para cá
         options.ExpireTimeSpan = TimeSpan.FromHours(8); // Cookie dura 1 turno de trabalho (8 horas)
+        // Atrás do Nginx a requisição chega em HTTP; sem Always o cookie de sessão saía sem a flag Secure.
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
     });
+
+// O app roda atrás do Nginx na VPS: sem isso o IP de todo mundo vira 127.0.0.1 (o rate limit de
+// login por IP passava a valer pra plataforma inteira) e o HSTS nunca era enviado. Por padrão só
+// confia em proxy de loopback, então um X-Forwarded-For vindo direto da internet é ignorado.
+builder.Services.Configure<ForwardedHeadersOptions>(o =>
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto);
+
+// Chaves do cookie/antiforgery persistidas fora da pasta do deploy: se ficarem num diretório
+// efêmero, cada push na main desloga todos os caixas no meio do turno. Caminho via
+// DataProtection:KeysPath (ex.: /var/lib/pendurai/keys); sem ele, usa o padrão do SO.
+var dataProtection = builder.Services.AddDataProtection().SetApplicationName("PendurAi");
+if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath)
+    dataProtection.PersistKeysToFileSystem(new DirectoryInfo(keysPath));
+
+builder.Services.AddHealthChecks().AddCheck<BancoHealthCheck>("banco");
 
 // 3. Define as Políticas de Segurança baseado nas Roles do banco
 builder.Services.AddAuthorization(options =>
@@ -209,6 +229,20 @@ builder.Services.AddRazorPages(options =>
 });
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
+
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["X-Frame-Options"] = "DENY";
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+    // shortcut: CSP sem script-src porque as telas ainda têm scripts inline; migrar para nonce antes de endurecer.
+    headers["Content-Security-Policy"] = "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'";
+    await next();
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -238,6 +272,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+app.MapHealthChecks("/healthz");
 app.MapRazorPages().WithStaticAssets();
 
 // 6. Webhook do Zé Delivery — endpoint público (sem cookie de sessão), autenticado por
