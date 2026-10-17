@@ -189,6 +189,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromHours(8); // Cookie dura 1 turno de trabalho (8 horas)
         // Atrás do Nginx a requisição chega em HTTP; sem Always o cookie de sessão saía sem a flag Secure.
         options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+        options.Events.OnValidatePrincipal = ValidacaoSessao.ValidarAsync;
     });
 
 // O app roda atrás do Nginx na VPS: sem isso o IP de todo mundo vira 127.0.0.1 (o rate limit de

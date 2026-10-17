@@ -66,13 +66,25 @@ namespace EmporioGege.Application.Services
         {
             var tenantId = tenantProvider.RequireTenantId();
 
+            if (valor <= 0)
+                throw new InvalidOperationException("Informe um valor de pagamento maior que zero.");
+
             await using var connection = await connectionFactory.CreateOpenConnectionAsync(ct);
+
+            // Antes o GREATEST(…, 0) engolia o valor pago a mais sem avisar ninguém.
             var linhasAfetadas = await connection.ExecuteAsync(new CommandDefinition(
-                "UPDATE clientes SET saldo_devedor = GREATEST(saldo_devedor - @Valor, 0) WHERE id = @Id AND tenant_id = @TenantId",
+                "UPDATE clientes SET saldo_devedor = saldo_devedor - @Valor WHERE id = @Id AND tenant_id = @TenantId AND saldo_devedor >= @Valor",
                 new { Valor = valor, Id = id, TenantId = tenantId }, cancellationToken: ct));
 
             if (linhasAfetadas == 0)
-                throw new InvalidOperationException($"Cliente {id} não encontrado para o tenant {tenantId}.");
+            {
+                var saldo = await connection.QuerySingleOrDefaultAsync<decimal?>(new CommandDefinition(
+                    "SELECT saldo_devedor FROM clientes WHERE id = @Id AND tenant_id = @TenantId",
+                    new { Id = id, TenantId = tenantId }, cancellationToken: ct))
+                    ?? throw new InvalidOperationException("Cliente não encontrado.");
+                throw new InvalidOperationException(
+                    $"O valor é maior que a dívida do cliente ({saldo.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))}).");
+            }
         }
     }
 }

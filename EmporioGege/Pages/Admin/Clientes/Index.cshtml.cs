@@ -30,7 +30,15 @@ namespace EmporioGege.Pages.Admin.Clientes
                 return RedirectToPage();
             }
 
-            await clienteService.RegistrarPagamentoAsync(id, valor, ct);
+            try
+            {
+                await clienteService.RegistrarPagamentoAsync(id, valor, ct);
+            }
+            catch (InvalidOperationException ex)
+            {
+                MensagemErro = ex.Message;
+                return RedirectToPage();
+            }
             MensagemSucesso = "Pagamento registrado.";
             return RedirectToPage();
         }
