@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PendurAi">
+  <rect width="64" height="64" rx="15" fill="#F2A516"/>
+  <!-- P: haste + barriga em forma de etiqueta de preço; o furo da etiqueta é o miolo do P -->
+  <path fill="#17130A" fill-rule="evenodd" d="M17 14.5c0-1.4 1.1-2.5 2.5-2.5h18.3c.8 0 1.6.4 2 1l8.6 11.4c.7.9.7 2.2 0 3.1L39.8 38.9c-.5.7-1.2 1.1-2 1.1H27v9.5c0 1.4-1.1 2.5-2.5 2.5h-5C18.1 52 17 50.9 17 49.5zM41 26a4.5 4.5 0 1 0-9 0 4.5 4.5 0 0 0 9 0z"/>
+</svg>
