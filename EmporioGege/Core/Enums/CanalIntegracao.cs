@@ -2,6 +2,7 @@ namespace EmporioGege.Core.Enums
 {
     public enum CanalIntegracao
     {
-        ZeDelivery
+        ZeDelivery,
+        WhatsApp
     }
 }

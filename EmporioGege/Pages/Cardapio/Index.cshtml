@@ -1,0 +1,88 @@
+@page "/c/{slug}"
+@model EmporioGege.Pages.Cardapio.IndexModel
+@{
+    Layout = null;
+    var ptBr = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var linkGeral = Model.LinkWhatsApp();
+}
+<!DOCTYPE html>
+<html lang="pt-br" data-bs-theme="dark">
+<head>
+    <partial name="_Head" />
+    <meta name="description" content="Cardápio da @Model.Cardapio.NomeLoja: veja os produtos e peça pelo WhatsApp." />
+    <title>@Model.Cardapio.NomeLoja · Cardápio</title>
+    <style>
+        .cardapio { max-width: 720px; margin: 0 auto; padding: 24px 16px 112px; }
+        .cardapio-topo { text-align: center; margin-bottom: 24px; }
+        .cardapio-topo h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 4px; }
+        .cardapio-lista { display: grid; gap: 12px; }
+        .cardapio-item { display: flex; gap: 14px; padding: 12px; border-radius: 16px; background: var(--bs-tertiary-bg); align-items: center; }
+        .cardapio-item.esgotado { opacity: .5; }
+        .cardapio-foto { width: 88px; height: 88px; flex: 0 0 88px; border-radius: 12px; object-fit: cover; background: var(--bs-secondary-bg); display: grid; place-items: center; font-size: 2rem; }
+        .cardapio-info { flex: 1; min-width: 0; }
+        .cardapio-info h2 { font-size: 1rem; font-weight: 600; margin: 0 0 2px; }
+        .cardapio-info p { font-size: .85rem; color: var(--bs-secondary-color); margin: 0 0 6px; }
+        .cardapio-preco { font-weight: 700; color: var(--bs-warning-text-emphasis); }
+        .cardapio-cta { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(transparent, var(--bs-body-bg) 35%); }
+        .cardapio-cta a { max-width: 720px; margin: 0 auto; display: flex; justify-content: center; gap: 8px; padding: 14px; border-radius: 999px; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <main class="cardapio">
+        <header class="cardapio-topo">
+            <h1>@Model.Cardapio.NomeLoja</h1>
+            <p class="text-muted mb-0">Escolha seu favorito e peça pelo WhatsApp. Pagamento por Pix na hora.</p>
+        </header>
+
+        @if (Model.Cardapio.Itens.Count == 0)
+        {
+            <p class="text-muted text-center py-5">O cardápio está sendo atualizado. Volte daqui a pouco!</p>
+        }
+        else
+        {
+            <div class="cardapio-lista">
+                @foreach (var item in Model.Cardapio.Itens)
+                {
+                    <article class="cardapio-item @(item.Esgotado ? "esgotado" : "")">
+                        @if (item.FotoUrl is not null)
+                        {
+                            <img class="cardapio-foto" src="@item.FotoUrl" alt="@item.Nome" loading="lazy" width="88" height="88" />
+                        }
+                        else
+                        {
+                            <div class="cardapio-foto" aria-hidden="true">🍰</div>
+                        }
+                        <div class="cardapio-info">
+                            <h2>@item.Nome</h2>
+                            @if (!string.IsNullOrWhiteSpace(item.Descricao))
+                            {
+                                <p>@item.Descricao</p>
+                            }
+                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                <span class="cardapio-preco">@item.Preco.ToString("C", ptBr)</span>
+                                @if (item.Esgotado)
+                                {
+                                    <span class="badge text-bg-secondary">Esgotado</span>
+                                }
+                                else if (Model.LinkWhatsApp(item.Nome) is { } link)
+                                {
+                                    <a href="@link" class="btn btn-sm btn-outline-success" target="_blank" rel="noopener">Pedir</a>
+                                }
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+
+        <p class="text-center text-muted small mt-4 mb-0">Feito com <a href="/" class="link-secondary">PendurAi</a></p>
+    </main>
+
+    @if (linkGeral is not null)
+    {
+        <div class="cardapio-cta">
+            <a href="@linkGeral" class="btn btn-success" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> Fazer pedido pelo WhatsApp</a>
+        </div>
+    }
+</body>
+</html>

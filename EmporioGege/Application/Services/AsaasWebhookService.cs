@@ -11,7 +11,8 @@ namespace EmporioGege.Application.Services
     // por natureza, então não há fila própria: se o processamento falhar, devolvemos 500 e
     // deixamos a própria Asaas reentregar o evento (comportamento padrão deles).
     public class AsaasWebhookService(
-        IDbConnectionFactory connectionFactory, IBillingNotificationService billingNotificationService, ILogger<AsaasWebhookService> logger)
+        IDbConnectionFactory connectionFactory, IBillingNotificationService billingNotificationService,
+        IPedidoOnlineService pedidoOnlineService, ILogger<AsaasWebhookService> logger)
         : IAsaasWebhookService
     {
         public async Task ProcessarAsync(string corpoJson, CancellationToken ct = default)
@@ -31,6 +32,19 @@ namespace EmporioGege.Application.Services
 
             if (raiz.TryGetProperty("payment", out var paymentEl))
             {
+                // A mesma conta Asaas recebe o Pix dos pedidos do bot (externalReference "pedido:{id}")
+                // - esses não têm nada a ver com a assinatura da loja e seguem outro caminho.
+                if (paymentEl.TryGetProperty("externalReference", out var refEl) && refEl.ValueKind == JsonValueKind.String
+                    && TentarLerPedidoId(refEl.GetString(), out var pedidoId)
+                    && paymentEl.TryGetProperty("id", out var cobrancaEl) && cobrancaEl.GetString() is { } cobrancaId)
+                {
+                    if (evento is "PAYMENT_RECEIVED" or "PAYMENT_CONFIRMED")
+                        await pedidoOnlineService.ConfirmarPagamentoAsync(pedidoId, cobrancaId, ct);
+                    else if (evento is "PAYMENT_OVERDUE" or "PAYMENT_DELETED")
+                        await pedidoOnlineService.ExpirarAsync(pedidoId, cobrancaId, ct);
+                    return;
+                }
+
                 if (paymentEl.TryGetProperty("subscription", out var subEl) && subEl.ValueKind == JsonValueKind.String)
                     subscriptionId = subEl.GetString();
 
@@ -121,6 +135,14 @@ namespace EmporioGege.Application.Services
 
             if (novoStatus == "ativo" && tenant.StatusLicencaAnterior != "ativo")
                 await billingNotificationService.EnviarPagamentoConfirmadoAsync(tenant.Id, ct);
+        }
+
+        public static bool TentarLerPedidoId(string? referenciaExterna, out Guid pedidoId)
+        {
+            pedidoId = Guid.Empty;
+            return referenciaExterna is not null
+                && referenciaExterna.StartsWith("pedido:", StringComparison.Ordinal)
+                && Guid.TryParse(referenciaExterna["pedido:".Length..], out pedidoId);
         }
 
         public static DateTime CoberturaAte(DateOnly vencimento) =>

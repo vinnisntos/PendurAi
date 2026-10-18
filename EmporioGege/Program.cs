@@ -18,6 +18,7 @@ using EmporioGege.Infrastructure.Email;
 using EmporioGege.Infrastructure.Faturamento;
 using EmporioGege.Infrastructure.Fiscal;
 using EmporioGege.Infrastructure.Impressao;
+using EmporioGege.Infrastructure.PedidosOnline;
 using EmporioGege.Infrastructure.Relatorios;
 using EmporioGege.Infrastructure.Saude;
 using EmporioGege.Infrastructure.Tenancy;
@@ -102,6 +103,12 @@ builder.Services.AddHttpClient<IAsaasClient, AsaasClient>((sp, client) =>
 builder.Services.AddScoped<IFaturamentoService, FaturamentoService>();
 builder.Services.AddScoped<IAsaasWebhookService, AsaasWebhookService>();
 
+// Pedidos do bot de WhatsApp (API /api/v1): Pix avulso na mesma conta Asaas, separado da
+// assinatura das lojas pelo externalReference "pedido:{id}" (ver AsaasWebhookService).
+builder.Services.AddScoped<IPedidoOnlineService, PedidoOnlineService>();
+builder.Services.AddScoped<ICardapioOnlineService, CardapioOnlineService>();
+builder.Services.AddHttpClient("BotCallback", client => client.Timeout = TimeSpan.FromSeconds(10));
+
 // E-mail transacional próprio (Resend) - boas-vindas do trial, instruções de pagamento e
 // confirmação de pagamento (ver IBillingNotificationService/BillingNotificationService).
 // Falha de envio é sempre best-effort (só loga), nunca derruba quem chamou.
@@ -179,6 +186,24 @@ var webhookGlobal = PartitionedRateLimiter.Create<HttpContext, string>(_ =>
 // esse caminho. Por isso o limite combinado é aplicado direto no endpoint via AddEndpointFilter
 // (ver mapeamento da rota), em vez de builder.Services.AddRateLimiter/app.UseRateLimiter.
 var webhookRateLimiter = PartitionedRateLimiter.CreateChained(webhookPorToken, webhookGlobal);
+
+// API do bot: mesmo raciocínio do webhook (limite por token + teto global), só que o token
+// vem no header Authorization em vez da rota.
+var apiBotRateLimiter = PartitionedRateLimiter.CreateChained(
+    PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(httpContext.Request.Headers.Authorization.ToString(), _ => new FixedWindowRateLimiterOptions
+        {
+            Window = TimeSpan.FromSeconds(10),
+            PermitLimit = 30,
+            QueueLimit = 0
+        })),
+    PartitionedRateLimiter.Create<HttpContext, string>(_ =>
+        RateLimitPartition.GetFixedWindowLimiter("api-bot-global", _ => new FixedWindowRateLimiterOptions
+        {
+            Window = TimeSpan.FromSeconds(10),
+            PermitLimit = 60,
+            QueueLimit = 0
+        })));
 
 // 2. Ativa a Autenticação por Cookies no navegador
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -372,5 +397,99 @@ app.MapPost("/webhooks/asaas", async (
     }
 })
 .WithName("AsaasWebhook");
+
+// Foto de produto do cardápio online (página pública /c/{slug} e bot). A URL muda a cada troca
+// de foto (?v=...), então dá pra deixar o navegador guardar em cache por um dia.
+app.MapGet("/cardapio/foto/{id:guid}", async (Guid id, ICardapioOnlineService cardapio, HttpContext http, CancellationToken ct) =>
+{
+    var foto = await cardapio.ObterFotoPublicaAsync(id, ct);
+    if (foto is null)
+        return Results.NotFound();
+    http.Response.Headers.CacheControl = "public, max-age=86400";
+    return Results.File(foto.Conteudo, foto.ContentType, lastModified: foto.AtualizadoEm);
+});
+
+// 8. API do bot de atendimento no WhatsApp — sem cookie de sessão; autenticada pelo token da
+// integração WHATSAPP da loja (header "Authorization: Bearer {token_url}"), que também define o
+// tenant da requisição via AmbientTenantContext (mesmo mecanismo do processador de webhooks).
+var apiBot = app.MapGroup("/api/v1")
+    .AddEndpointFilter(async (context, next) =>
+    {
+        using var lease = apiBotRateLimiter.AttemptAcquire(context.HttpContext);
+        if (!lease.IsAcquired)
+            return Results.StatusCode(StatusCodes.Status429TooManyRequests);
+
+        var cabecalho = context.HttpContext.Request.Headers.Authorization.ToString();
+        if (!cabecalho.StartsWith("Bearer ", StringComparison.Ordinal))
+            return Results.Unauthorized();
+
+        var servicos = context.HttpContext.RequestServices;
+        var webhooks = servicos.GetRequiredService<IWebhookRepository>();
+        var integracao = await webhooks.BuscarIntegracaoAtivaPorTokenAsync(cabecalho["Bearer ".Length..].Trim(), context.HttpContext.RequestAborted);
+        if (integracao is null || integracao.Canal != CanalIntegracao.WhatsApp)
+            return Results.Unauthorized();
+
+        // Token válido, mas a loja está suspensa/cancelada: 403 (não 401) pro bot saber que não é
+        // credencial errada e avisar o cliente em vez de ficar tentando.
+        if (PedidoOnlineService.LicencaBloqueiaVendas(await webhooks.ObterStatusLicencaAsync(integracao.TenantId, context.HttpContext.RequestAborted)))
+            return Results.Json(new { erro = "Loja com a licença suspensa ou cancelada." }, statusCode: StatusCodes.Status403Forbidden);
+
+        using var escopoTenant = servicos.GetRequiredService<AmbientTenantContext>().BeginScope(integracao.TenantId);
+        try
+        {
+            return await next(context);
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.BadRequest(new { erro = ex.Message });
+        }
+        catch (EmporioGege.Core.Exceptions.EstoqueInsuficienteException ex)
+        {
+            return Results.Conflict(new { erro = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Hoje só a falha ao gerar o Pix no Asaas chega aqui como InvalidOperationException.
+            servicos.GetRequiredService<ILogger<Program>>().LogWarning(ex, "Falha na API do bot.");
+            return Results.Json(new { erro = ex.Message }, statusCode: StatusCodes.Status502BadGateway);
+        }
+        catch (Exception ex)
+        {
+            servicos.GetRequiredService<ILogger<Program>>().LogError(ex, "Erro inesperado na API do bot.");
+            return Results.StatusCode(StatusCodes.Status500InternalServerError);
+        }
+    });
+
+apiBot.MapGet("/cardapio", (IPedidoOnlineService pedidos, CancellationToken ct) => pedidos.ListarCardapioAsync(ct));
+
+apiBot.MapPost("/pedidos", async (EmporioGege.Application.DTOs.CriarPedidoOnlineDto dto, IPedidoOnlineService pedidos, CancellationToken ct) =>
+{
+    var pedido = await pedidos.CriarPedidoAsync(dto, ct);
+    return Results.Created($"/api/v1/pedidos/{pedido.Id}", pedido);
+});
+
+apiBot.MapGet("/pedidos/{id:guid}", async (Guid id, IPedidoOnlineService pedidos, CancellationToken ct) =>
+    await pedidos.ObterPedidoAsync(id, ct) is { } pedido ? Results.Ok(pedido) : Results.NotFound());
+
+apiBot.MapGet("/metricas", async (DateOnly? de, DateOnly? ate, IDashboardService dashboard, IPedidoOnlineService pedidos, CancellationToken ct) =>
+{
+    var fim = ate ?? EmporioGege.Core.Common.FusoHorarioBrasil.HojeLocal();
+    var inicio = de ?? fim;
+    if (inicio > fim || fim.DayNumber - inicio.DayNumber > 366)
+        return Results.BadRequest(new { erro = "Período inválido (máximo de 1 ano)." });
+
+    var inicioUtc = EmporioGege.Core.Common.FusoHorarioBrasil.InicioDoDiaLocalEmUtc(inicio);
+    var fimUtc = EmporioGege.Core.Common.FusoHorarioBrasil.InicioDoDiaLocalEmUtc(fim.AddDays(1));
+
+    var resumo = await dashboard.ObterResumoAsync(inicioUtc, fimUtc, ct);
+    var maisVendidos = await dashboard.ListarProdutosMaisVendidosAsync(inicioUtc, fimUtc, 5, ct);
+    var estoqueCritico = await dashboard.ContarProdutosEstoqueCriticoAsync(ct);
+    var aguardando = await pedidos.ContarAguardandoPagamentoAsync(ct);
+
+    return Results.Ok(new EmporioGege.Application.DTOs.MetricasLojaDto(
+        inicio, fim, resumo.Faturamento, resumo.LucroBruto, resumo.TotalVendas,
+        resumo.TotalVendas == 0 ? 0 : Math.Round(resumo.Faturamento / resumo.TotalVendas, 2),
+        maisVendidos, estoqueCritico, aguardando));
+});
 
 app.Run();

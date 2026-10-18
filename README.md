@@ -19,6 +19,7 @@ Sistema completo de **Frente de Caixa (PDV)** e **Retaguarda (ERP)**, multi-tena
 
 - [Funcionalidades](#-funcionalidades)
 - [Arquitetura](#-arquitetura)
+- [Cardápio online e bot de WhatsApp](#-cardápio-online-e-bot-de-whatsapp)
 - [Stack Tecnológico](#-stack-tecnológico)
 - [Status do Projeto](#-status-do-projeto)
 - [Status do Repositório](#-status-do-repositório)
@@ -41,6 +42,7 @@ Sistema completo de **Frente de Caixa (PDV)** e **Retaguarda (ERP)**, multi-tena
 | 🔐 **Acesso & Licenciamento** | Papéis vendedor/administrador/superadmin via Supabase Auth + Claims/Policies; login bloqueado automaticamente para licença suspensa/cancelada/expirada; proteção contra força bruta no login e na senha de supervisor. |
 | 💳 **Cobrança Recorrente (Asaas)** | Assinatura e cobrança automatizada por loja via Asaas (produção), com webhook atualizando o status da licença sozinho conforme o pagamento é confirmado, vence ou é cancelado. |
 | 🚚 **Integração Zé Delivery** | Recebimento de pedidos via webhook (fila durável + background service, assinatura HMAC, rate limiting). |
+| 🍰 **Cardápio online + WhatsApp** | Página pública do cardápio (`/c/{slug}`) com foto e preço, e API para um bot de WhatsApp que monta o pedido e cobra por Pix (Asaas); a venda entra sozinha quando o Pix cai. |
 
 ## 🏗️ Arquitetura
 
@@ -55,6 +57,25 @@ Models/          modelos do cliente Supabase (Postgrest) — usados só no login
 ```
 
 Todas as lojas (tenants) compartilham o mesmo schema Postgres; o isolamento é feito por `tenant_id` em cada tabela e aplicado explicitamente em toda query via `ITenantProvider`. O acesso transacional roda via Dapper + Npgsql; o cliente REST do Supabase (Postgrest) é usado apenas na autenticação.
+
+## 🍰 Cardápio online e bot de WhatsApp
+
+Canal de venda para lojas que atendem pelo WhatsApp (ex.: doces por encomenda). O bot fica fora do PendurAi (projeto separado) e conversa com ele só pela API abaixo.
+
+**Antes do deploy**, aplicar no Supabase (todas idempotentes): `0018_canal_whatsapp_pedidos.sql`, `0019_cardapio_online.sql` e `0020_reserva_estoque_pedidos.sql`.
+
+**Configuração (por loja)** em *Admin → Cardápio online*: endereço do cardápio (`/c/{slug}`), WhatsApp do atendimento, **Gerar credenciais** (token da API + segredo do aviso de pagamento, mostrados uma única vez) e o endereço do bot que recebe o aviso. Os produtos entram no cardápio em *Estoque → Editar → Mostrar no cardápio online* (com descrição e foto, guardada no próprio banco e servida em `/cardapio/foto/{id}`).
+
+**API do bot** (`Authorization: Bearer {token}`, mesmo rate limit dos webhooks; loja suspensa/cancelada recebe 403):
+
+| Endpoint | Uso |
+|---|---|
+| `GET /api/v1/cardapio` | Produtos do cardápio com preço e estoque disponível |
+| `POST /api/v1/pedidos` | Cria o pedido (preço sempre do banco) e devolve o Pix copia e cola + QR |
+| `GET /api/v1/pedidos/{id}` | Status do pedido |
+| `GET /api/v1/metricas?de=&ate=` | Faturamento, lucro, ticket médio, mais vendidos, estoque crítico, pedidos aguardando Pix |
+
+**Pagamento**: o Pix é cobrado na **mesma conta Asaas** da assinatura das lojas, com `externalReference = "pedido:{id}"` — é isso que faz o `/webhooks/asaas` separar pedido de assinatura. Enquanto o Pix não cai, as unidades ficam **reservadas por até 60 minutos** (não aparecem como disponíveis nem podem ser pedidas de novo). Quando cai, o pedido vira venda normal (origem `WHATSAPP`, PIX) pelo `VendaService`, de forma idempotente, e o PendurAi avisa o bot com um POST assinado (`X-PendurAi-Signature: sha256=<HMAC do corpo>`). Se o estoque físico acabou nesse meio-tempo (ex.: venda de balcão), o pedido fica `PAGO_SEM_ESTOQUE` para a loja resolver (produzir mais ou estornar).
 
 ## 💻 Stack Tecnológico
 

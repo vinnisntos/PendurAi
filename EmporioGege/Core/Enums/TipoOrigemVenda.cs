@@ -4,6 +4,7 @@ namespace EmporioGege.Core.Enums
     {
         Balcao,
         ZeDelivery,
-        Comanda
+        Comanda,
+        WhatsApp
     }
 }

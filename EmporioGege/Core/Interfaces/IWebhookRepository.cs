@@ -12,6 +12,10 @@ namespace EmporioGege.Core.Interfaces
     {
         Task<IntegracaoWebhook?> BuscarIntegracaoAtivaPorTokenAsync(string tokenUrl, CancellationToken ct = default);
 
+        // API do bot (/api/v1): loja suspensa/cancelada não pode vender pelo WhatsApp. Consulta à
+        // parte pra não mudar o que o webhook do Zé Delivery já faz com BuscarIntegracaoAtivaPorToken.
+        Task<string?> ObterStatusLicencaAsync(Guid tenantId, CancellationToken ct = default);
+
         // Retorna null quando já existe um registro para (tenantId, canal, eventoExternoId) —
         // é o mecanismo de idempotência contra reentrega do mesmo evento pelo parceiro.
         Task<Guid?> RegistrarRecebimentoAsync(Guid tenantId, CanalIntegracao canal, string eventoExternoId, string payloadJson, CancellationToken ct = default);

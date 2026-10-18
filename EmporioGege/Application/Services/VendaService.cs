@@ -112,6 +112,7 @@ namespace EmporioGege.Application.Services
                     {
                         TipoOrigemVenda.ZeDelivery => "ZEDELIVERY",
                         TipoOrigemVenda.Comanda => "COMANDA",
+                        TipoOrigemVenda.WhatsApp => "WHATSAPP",
                         _ => "BALCAO"
                     };
 

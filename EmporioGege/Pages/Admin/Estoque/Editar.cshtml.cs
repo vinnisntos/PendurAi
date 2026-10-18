@@ -4,12 +4,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using EmporioGege.Application.DTOs;
+using EmporioGege.Application.Services;
 using EmporioGege.Core.Interfaces;
 
 namespace EmporioGege.Pages.Admin.Estoque
 {
     [Authorize(Policy = "AdminOnly")]
-    public class EditarModel(IProdutoService produtoService) : PageModel
+    public class EditarModel(IProdutoService produtoService, ICardapioOnlineService cardapioService) : PageModel
     {
         private Guid UsuarioId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -74,6 +75,22 @@ namespace EmporioGege.Pages.Admin.Estoque
         [BindProperty]
         public bool PermiteBaixaManual { get; set; }
 
+        // Cardápio online (bot de WhatsApp + página pública) - salvo à parte, depois do produto.
+        [BindProperty]
+        public bool ExibirCardapio { get; set; }
+
+        [BindProperty]
+        [StringLength(300, ErrorMessage = "A descrição pode ter no máximo 300 caracteres.")]
+        public string? Descricao { get; set; }
+
+        [BindProperty]
+        public IFormFile? Foto { get; set; }
+
+        [BindProperty]
+        public bool RemoverFoto { get; set; }
+
+        public string? FotoUrl { get; set; }
+
         [TempData]
         public string? MensagemErro { get; set; }
 
@@ -105,6 +122,11 @@ namespace EmporioGege.Pages.Admin.Estoque
             Cfop = produto.Cfop;
             PermiteBaixaManual = produto.PermiteBaixaManual;
 
+            var cardapio = await cardapioService.ObterProdutoAsync(Id.Value, ct);
+            ExibirCardapio = cardapio?.ExibirCardapio ?? false;
+            Descricao = cardapio?.Descricao;
+            FotoUrl = cardapio?.FotoUrl;
+
             return Page();
         }
 
@@ -117,14 +139,40 @@ namespace EmporioGege.Pages.Admin.Estoque
                 Id, Nome, CodigoBarras, CustoMedio, PrecoVendaBase, EstoqueAtual, EstoqueMinimo,
                 UnidadeMedida, QuantidadePorCaixa, DataValidade, PrecoCaixa, PrecoAtacado, CodigoNcm, Cfop, PermiteBaixaManual, EstoqueOriginal);
 
+            if (Foto is { Length: > CardapioOnlineService.TamanhoMaximoFoto })
+            {
+                MensagemErro = "A foto pode ter no máximo 2 MB.";
+                return Page();
+            }
+
+            Guid produtoId;
             try
             {
-                await produtoService.SalvarAsync(dto, UsuarioId, ct);
+                produtoId = await produtoService.SalvarAsync(dto, UsuarioId, ct);
             }
             catch (InvalidOperationException ex)
             {
                 MensagemErro = ex.Message;
                 return Page();
+            }
+
+            byte[]? foto = null;
+            if (Foto is { Length: > 0 })
+            {
+                using var buffer = new MemoryStream();
+                await Foto.CopyToAsync(buffer, ct);
+                foto = buffer.ToArray();
+            }
+
+            try
+            {
+                await cardapioService.SalvarProdutoAsync(produtoId, ExibirCardapio, Descricao, foto, RemoverFoto, ct);
+            }
+            catch (ArgumentException ex)
+            {
+                // O produto já foi salvo; só o cardápio falhou - volta pra edição dele com o motivo.
+                MensagemErro = $"Produto salvo, mas o cardápio não: {ex.Message}";
+                return RedirectToPage("Editar", new { id = produtoId });
             }
 
             return RedirectToPage("Index");

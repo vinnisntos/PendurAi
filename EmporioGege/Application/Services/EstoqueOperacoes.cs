@@ -56,6 +56,7 @@ namespace EmporioGege.Application.Services
             {
                 TipoOrigemVenda.ZeDelivery => "ZEDELIVERY",
                 TipoOrigemVenda.Comanda => "COMANDA",
+                TipoOrigemVenda.WhatsApp => "WHATSAPP",
                 _ => "BALCAO"
             };
             var justificativa = dto.ReferenciaExterna is null
