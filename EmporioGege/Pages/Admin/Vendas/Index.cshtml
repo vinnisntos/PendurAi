@@ -64,13 +64,14 @@
                     var badgeClasse = v.TipoOrigem switch
                     {
                         "COMANDA" => "badge-origem-comanda",
-                        "ZEDELIVERY" => "badge-origem-zedelivery",
+                        "ZEDELIVERY" or "WHATSAPP" => "badge-origem-zedelivery",
                         _ => "badge-origem-balcao"
                     };
                     var origemTexto = v.TipoOrigem switch
                     {
                         "COMANDA" => $"Comanda {v.NumeroComanda}",
                         "ZEDELIVERY" => "Zé Delivery",
+                        "WHATSAPP" => "WhatsApp",
                         _ => "Balcão"
                     };
                     <tr data-venda-id="@v.Id">

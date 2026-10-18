@@ -31,6 +31,13 @@ namespace EmporioGege.Infrastructure.Webhooks
             };
         }
 
+        public async Task<string?> ObterStatusLicencaAsync(Guid tenantId, CancellationToken ct = default)
+        {
+            await using var connection = await connectionFactory.CreateOpenConnectionAsync(ct);
+            return await connection.QuerySingleOrDefaultAsync<string?>(new CommandDefinition(
+                "SELECT status_licenca FROM tenants WHERE id = @TenantId", new { TenantId = tenantId }, cancellationToken: ct));
+        }
+
         public async Task<Guid?> RegistrarRecebimentoAsync(Guid tenantId, CanalIntegracao canal, string eventoExternoId, string payloadJson, CancellationToken ct = default)
         {
             await using var connection = await connectionFactory.CreateOpenConnectionAsync(ct);
@@ -128,12 +135,14 @@ namespace EmporioGege.Infrastructure.Webhooks
         private static CanalIntegracao ParseCanal(string canal) => canal switch
         {
             "ZEDELIVERY" => CanalIntegracao.ZeDelivery,
+            "WHATSAPP" => CanalIntegracao.WhatsApp,
             _ => throw new NotSupportedException($"Canal de integração desconhecido: {canal}")
         };
 
         private static string ToTexto(CanalIntegracao canal) => canal switch
         {
             CanalIntegracao.ZeDelivery => "ZEDELIVERY",
+            CanalIntegracao.WhatsApp => "WHATSAPP",
             _ => throw new NotSupportedException($"Canal de integração desconhecido: {canal}")
         };
 

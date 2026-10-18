@@ -296,6 +296,25 @@ mas uma revisão de segurança formal antes do lançamento comercial
 lidar com dados financeiros e de clientes de terceiros.
 
 
+9. CARDÁPIO ONLINE + BOT DE WHATSAPP — IMPLEMENTADO EM 2026-10-18, FALTA TESTE REAL
+================================================================
+Branch feat/canal-whatsapp. Migrations 0018, 0019 e 0020 ainda NÃO
+aplicadas em produção. Pendências conhecidas:
+- E2E feito em 2026-10-18 no banco real (loja "Adega Teste E2E", Asaas
+  forçado pra sandbox): API, reserva, webhook PAYMENT_RECEIVED idempotente
+  e página pública OK. Falta o primeiro Pix real (pedido de R$ 1,00).
+- Reserva de estoque dura 60 min (ReservaEstoque.MinutosReserva), embora o
+  QR do Asaas valha até o fim do dia: quem paga depois disso pode cair em
+  PAGO_SEM_ESTOQUE se o item tiver acabado.
+- Venda de balcão (PDV) não respeita a reserva: pode gerar
+  PAGO_SEM_ESTOQUE, que hoje é resolvido manualmente (sem estorno
+  automático do Pix).
+- Pedidos PAGO_SEM_ESTOQUE/ERRO só aparecem em Admin → Cardápio online;
+  não há alerta no dashboard.
+- Fotos não são redimensionadas (limite de 2 MB por foto, guardadas no
+  Postgres).
+
+
 DECISÕES DE PROVEDOR JÁ TOMADAS (2026-07-21): NFC-e via Focus NFe
 (só emissão de NFC-e, nenhum outro serviço deles) — integração
 iniciada, pausada por custo, reconfirmado no mesmo dia (ver seção 3).

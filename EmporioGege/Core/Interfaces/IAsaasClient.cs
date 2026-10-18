@@ -17,5 +17,11 @@ namespace EmporioGege.Core.Interfaces
         // diretamente, só a Asaas gera a primeira cobrança de forma assíncrona (geralmente
         // quase imediata). Retorna null (não é erro) se a cobrança ainda não existir.
         Task<string?> ObterLinkCobrancaAsync(string subscriptionId, CancellationToken ct = default);
+
+        // Pedido online (bot de WhatsApp): reaproveita o cliente Asaas pelo CPF em vez de criar
+        // um novo a cada compra, e gera uma cobrança Pix avulsa já com o QR Code.
+        Task<string?> BuscarClienteIdPorCpfCnpjAsync(string cpfCnpj, CancellationToken ct = default);
+
+        Task<CriarCobrancaPixResultado> CriarCobrancaPixAsync(CriarCobrancaPixDto dto, CancellationToken ct = default);
     }
 }
